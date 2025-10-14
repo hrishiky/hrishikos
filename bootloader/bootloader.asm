@@ -1,4 +1,5 @@
 org 0x7c00
+
 [bits 16]
 
 start:
@@ -23,7 +24,7 @@ boot:
  	mov es, ax
 	xor bx, bx
 
-	mov al, 25
+	mov al, 17
 	mov ch, 0
 	mov cl, 2
 	mov dh, 0
@@ -33,9 +34,9 @@ boot:
 
 	jc disk_error
 
-	add ax, 544
+	mov ax, 0x1000
 	mov es, ax
-	xor bx, bx
+	mov bx, 17 * 512
 
 	mov ah, 0x02
 	mov al, 8
@@ -47,32 +48,19 @@ boot:
 
 	jc disk_error
 
-	mov ax, 0x3000
- 	mov es, ax
-	xor bx, bx
+	; mov ax, 0x3000
+ 	; mov es, ax
+	; xor bx, bx
 
-	mov ah, 0x02
-	mov al, 4
-	mov ch, 0
-	mov cl, 9
-	mov dh, 1
-	mov dl, 0
-	int 0x13
+	; mov ah, 0x02
+	; mov al, 31
+	; mov ch, 0
+	; mov cl, 9
+	; mov dh, 1
+	; mov dl, 0
+	; int 0x13
 
-	jc disk_error
-
-	cli
-	cld
-
-	xor ax, ax
-	mov ds, ax
-	mov es, ax
-	mov ss, ax
-	mov sp, 0x7c00
-
-	in al, 0x92
-	or al, 2
-	out 0x92, al
+	; jc disk_error
 
 	jmp 0x1000:0x0000
 

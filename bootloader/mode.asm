@@ -1,13 +1,51 @@
-org 0x0010000
+org 0x10000
 
 [bits 16]
 start:
-	mov ax, 1
-	hlt
+	jmp real_mode
 
-	jmp $
+gdt32_start:
+	dd 0x00000000
+	dd 0x00000000
+	dd 0x0000FFFF
+	dd 0x00CF9A00
+	dd 0x0000FFFF
+	dd 0x00CF9200
+gdt32_end:
 
-        lgdt [gdt_location]
+align 4
+gdt32_location:
+	dw gdt32_end - gdt32_start - 1
+	dd gdt32_start
+
+gdt64_start:
+	dq 0x0000000000000000
+	dq 0x00209A0000000000
+	dq 0x0000920000000000
+gdt64_end:
+
+align 4
+gdt64_location:
+	dw gdt64_end - gdt64_start - 1
+	dd gdt64_start
+
+align 4096
+PML4:
+	dq PDPT + 0x03
+
+align 4096
+PDPT:
+	dq PD + 0x03
+
+align 4096
+PD:
+	dq 0x00100000 + 0x83
+	dq 0x00300000 + 0x83
+
+real_mode:
+	cli
+
+        lgdt [gdt32_location]
 
         in al, 0x92
         or al, 0x02
@@ -21,6 +59,9 @@ start:
 
 [bits 32]
 protected_mode:
+	hlt
+	jmp $
+
         mov ax, 0x10
         mov ds, ax
         mov es, ax
@@ -52,30 +93,3 @@ long_mode:
 	jmp 0x00200000
 
 	hlt
-
-
-gdt_start:
-	dq 0x0000000000000000
-	dq 0x00209A0000000000
-	dq 0x0000920000000000
-gdt_end:
-
-align 4
-gdt_location:
-	dw gdt_end - gdt_start - 1
-	dd gdt_start + 0x00100000
-
-align 4096
-PML4:
-	dq PDPT + 0x03
-
-align 4096
-PDPT:
-	dq PD + 0x03
-
-align 4096
-PD:
-	dq 0x00100000 + 0x83
-	dq 0x00300000 + 0x83
-
-dw 0xDEADBEEF
