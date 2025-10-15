@@ -7,7 +7,6 @@ start:
 
 load_msg db "bootloader: loaded", 0ah, 0dh, 0h
 diskerr_msg db "bootloader: disk read failed", 0ah, 0dh, 0h
-jmperr_msg db "bootloader: kernel jump failed", 0ah, 0dh, 0h
 
 CursorX db 0
 CursorY db 0
@@ -20,7 +19,7 @@ boot:
 	mov si, load_msg
 	call print
 
-	mov ax, 0x1000
+	mov ax, 0x800
  	mov es, ax
 	xor bx, bx
 
@@ -34,7 +33,7 @@ boot:
 
 	jc disk_error
 
-	mov ax, 0x1000
+	mov ax, 0x800
 	mov es, ax
 	mov bx, 17 * 512
 
@@ -62,7 +61,7 @@ boot:
 
 	; jc disk_error
 
-	jmp 0x1000:0x0000
+	jmp 0x0:0x8000
 
 disk_error:
 	mov si, diskerr_msg

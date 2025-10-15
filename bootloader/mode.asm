@@ -1,4 +1,4 @@
-org 0x10000
+org 0x8000
 
 [bits 16]
 start:
@@ -59,9 +59,6 @@ real_mode:
 
 [bits 32]
 protected_mode:
-	hlt
-	jmp $
-
         mov ax, 0x10
         mov ds, ax
         mov es, ax
@@ -69,6 +66,10 @@ protected_mode:
         mov gs, ax
         mov ss, ax
         mov esp, 0x90000
+
+	mov eax, 0xFFFFFFFF
+	hlt
+	jmp $
 
 	mov eax, cr4
 	or eax, 1 << 5
