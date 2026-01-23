@@ -22,44 +22,64 @@ boot:
 	mov ax, 0x800
  	mov es, ax
 	xor bx, bx
-
+	mov ah, 0x02
 	mov al, 17
 	mov ch, 0
 	mov cl, 2
 	mov dh, 0
 	mov dl, 0
-	mov ah, 0x02
 	int 0x13
-
 	jc disk_error
 
 	mov ax, 0x800
 	mov es, ax
 	mov bx, 17 * 512
-
 	mov ah, 0x02
-	mov al, 8
+	mov al, 16
 	mov ch, 0
 	mov cl, 1
 	mov dh, 1
 	mov dl, 0
 	int 0x13
-
 	jc disk_error
 
-	; mov ax, 0x3000
- 	; mov es, ax
-	; xor bx, bx
+	mov ax, 0x3000
+ 	mov es, ax
+	xor bx, bx
+	mov ah, 0x02
+	mov al, 2 ; old: 3
+	mov ch, 0
+	mov cl, 16
+	mov dh, 1
+	mov dl, 0
+	int 0x13
+	jc disk_error
 
-	; mov ah, 0x02
-	; mov al, 31
-	; mov ch, 0
-	; mov cl, 9
-	; mov dh, 1
-	; mov dl, 0
-	; int 0x13
+	%if 0
+	mov ax, 0x3000
+ 	mov es, ax
+	mov bx, 3 * 512
+	mov ah, 0x02
+	mov al, 18
+	mov ch, 1
+	mov cl, 1
+	mov dh, 0
+	mov dl, 0
+	int 0x13
+	jc disk_error
 
-	; jc disk_error
+	mov ax, 0x3000
+ 	mov es, ax
+	mov bx, 21 * 512
+	mov ah, 0x02
+	mov al, 3
+	mov ch, 1
+	mov cl, 1
+	mov dh, 1
+	mov dl, 0
+	int 0x13
+	jc disk_error
+	%endif 0
 
 	jmp 0x0:0x8000
 

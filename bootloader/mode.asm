@@ -32,15 +32,21 @@ gdt64_location:
 align 4096
 PML4:
 	dq PDPT + 0x03
+	times 511 dq 0
 
 align 4096
 PDPT:
+	dq 0
+	dq 0
+	dq 0
 	dq PD + 0x03
+	times 508 dq 0
 
 align 4096
 PD:
-	dq 0x00100000 + 0x83
-	dq 0x00300000 + 0x83
+	dq 0x00000000 + 0x83
+	dq 0x00200000 + 0x83
+	times 510 dq 0
 
 real_mode:
 	cli
@@ -67,9 +73,7 @@ protected_mode:
         mov ss, ax
         mov esp, 0x90000
 
-	mov eax, 0xFFFFFFFF
-	hlt
-	jmp $
+	lgdt [gdt64_location]
 
 	mov eax, cr4
 	or eax, 1 << 5
@@ -87,10 +91,21 @@ protected_mode:
 	or eax, 0x80000000
 	mov cr0, eax
 
+
 	jmp 0x08:long_mode
 
 [bits 64]
 long_mode:
-	jmp 0x00200000
+        mov ax, 0x10
+        mov ds, ax
+        mov es, ax
+        mov fs, ax
+        mov gs, ax
+        mov ss, ax
+	mov rsp, 0x90000
 
+	mov rax, 0x6941
 	hlt
+
+	mov rax, 0x00030000
+	jmp rax

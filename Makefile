@@ -27,10 +27,10 @@ bootdisk: bootloader os
 	dd conv=notrunc if=$(OS) of=$(DISK_IMG) bs=512 count=$(OS_SECTORS) seek=$$(($(MODE_SECTORS) + 1))
 
 qemu:
-	qemu-system-i386 -machine q35 -fda $(DISK_IMG) -gdb tcp::26000 -S
+	qemu-system-x86_64 -d in_asm,cpu_reset,int,guest_errors -no-reboot -machine q35 -fda $(DISK_IMG) -gdb tcp::26000 -S
 
 qemu-no-debug:
-	qemu-system-i386 -machine q35 -fda $(DISK_IMG)
+	qemu-system-x86_64 -d in_asm,cpu_reset,int,guest_errors -no-reboot -machine q35 -fda $(DISK_IMG)
 
 clean:
 	make -C bootloader clean
