@@ -36,11 +36,8 @@ PML4:
 
 align 4096
 PDPT:
-	dq 0
-	dq 0
-	dq 0
 	dq PD + 0x03
-	times 508 dq 0
+	times 511 dq 0
 
 align 4096
 PD:
@@ -91,7 +88,6 @@ protected_mode:
 	or eax, 0x80000000
 	mov cr0, eax
 
-
 	jmp 0x08:long_mode
 
 [bits 64]
@@ -103,9 +99,6 @@ long_mode:
         mov gs, ax
         mov ss, ax
 	mov rsp, 0x90000
-
-	mov rax, 0x6941
-	hlt
 
 	mov rax, 0x00030000
 	jmp rax

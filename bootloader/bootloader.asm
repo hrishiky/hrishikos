@@ -49,7 +49,7 @@ boot:
 	mov ah, 0x02
 	mov al, 2 ; old: 3
 	mov ch, 0
-	mov cl, 16
+	mov cl, 17
 	mov dh, 1
 	mov dl, 0
 	int 0x13
