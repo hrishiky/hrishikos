@@ -11,14 +11,44 @@ diskerr_msg db "bootloader: disk read failed", 0ah, 0dh, 0h
 CursorX db 0
 CursorY db 0
 
+BootDrive db 0
+
+DAP:
+	db 0x10
+	db 0x00
+count:	dw 33
+offset:	dw 0x0000
+sgmnt:	dw 0x0800
+lba:	dq 1
+
 boot:
 	cli
 	cld
+
+	mov [BootDrive], dl
 
 	call clear_screen
 	mov si, load_msg
 	call print
 
+	mov ah, 0x42
+	mov si, DAP
+	mov dl, [BootDrive]
+	int 0x13
+	jc disk_error
+
+	mov word [count], 5
+	mov word [offset], 0x0000
+	mov word [sgmnt], 0x3000
+	mov word [lba], 34
+
+	mov ah, 0x42
+	mov si, DAP
+	mov dl, [BootDrive]
+	int 0x13
+	jc disk_error
+
+	%if 0
 	mov ax, 0x800
  	mov es, ax
 	xor bx, bx
@@ -27,7 +57,7 @@ boot:
 	mov ch, 0
 	mov cl, 2
 	mov dh, 0
-	mov dl, 0
+	mov dl, [BootDrive]
 	int 0x13
 	jc disk_error
 
@@ -39,7 +69,7 @@ boot:
 	mov ch, 0
 	mov cl, 1
 	mov dh, 1
-	mov dl, 0
+	mov dl, [BootDrive]
 	int 0x13
 	jc disk_error
 
@@ -51,32 +81,7 @@ boot:
 	mov ch, 0
 	mov cl, 17
 	mov dh, 1
-	mov dl, 0
-	int 0x13
-	jc disk_error
-
-	%if 0
-	mov ax, 0x3000
- 	mov es, ax
-	mov bx, 3 * 512
-	mov ah, 0x02
-	mov al, 18
-	mov ch, 1
-	mov cl, 1
-	mov dh, 0
-	mov dl, 0
-	int 0x13
-	jc disk_error
-
-	mov ax, 0x3000
- 	mov es, ax
-	mov bx, 21 * 512
-	mov ah, 0x02
-	mov al, 3
-	mov ch, 1
-	mov cl, 1
-	mov dh, 1
-	mov dl, 0
+	mov dl, [BootDrive]
 	int 0x13
 	jc disk_error
 	%endif 0

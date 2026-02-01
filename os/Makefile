@@ -12,9 +12,7 @@ $(BUILD_DIR)/%.o: %.c
 	gcc $(CFLAGS) -c $< -o $@
 
 $(OS): $(OS_OBJS)
-	# ld -m elf_x86_64 -nmagic -T os.lds $(OS_OBJS) -o $@
-	ld -m elf_x86_64 -T os2.lds -o $(OS).elf $(OS_OBJS)
-	objcopy -O binary $(OS).elf $(OS)
+	ld -m elf_x86_64 -nmagic -T os.lds $(OS_OBJS) -o $@
 
 clean:
 	rm $(OS_OBJS)

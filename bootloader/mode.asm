@@ -43,7 +43,8 @@ align 4096
 PD:
 	dq 0x00000000 + 0x83
 	dq 0x00200000 + 0x83
-	times 510 dq 0
+	dq 0x00400000 + 0x83
+	times 509 dq 0
 
 real_mode:
 	cli
