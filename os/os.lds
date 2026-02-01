@@ -1,15 +1,11 @@
 ENTRY(main);
 
-PHDRS
-{
-	headers PT_PHDR FILEHDR PHDRS;
-	code PT_LOAD FILEHDR PHDRS;
-}
-
 SECTIONS
 {
-	.text 0x600:  ALIGN(0x100) { *(.text) } :code
-	.data : { *(.data) }
-	.bss : { *(.bss) }
-	/DISCARD/ : { *(.eh_frame) }
+	. = 0x35000;
+
+	.text ALIGN(0x1000) : { *(.text) *(.rodata) }
+	.data ALIGN(0x1000) : { *(.data) }
+	.bss ALIGN(0x1000) : { *(COMMON) *(.bss) }
+	/DISCARD/ : { *(.eh_frame) *(.comment) }
 }
