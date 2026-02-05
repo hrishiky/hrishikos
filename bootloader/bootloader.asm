@@ -37,7 +37,7 @@ boot:
 	int 0x13
 	jc disk_error
 
-	mov word [count], 5
+	mov word [count], 33
 	mov word [offset], 0x0000
 	mov word [sgmnt], 0x3000
 	mov word [lba], 34
@@ -47,44 +47,6 @@ boot:
 	mov dl, [BootDrive]
 	int 0x13
 	jc disk_error
-
-	%if 0
-	mov ax, 0x800
- 	mov es, ax
-	xor bx, bx
-	mov ah, 0x02
-	mov al, 17
-	mov ch, 0
-	mov cl, 2
-	mov dh, 0
-	mov dl, [BootDrive]
-	int 0x13
-	jc disk_error
-
-	mov ax, 0x800
-	mov es, ax
-	mov bx, 17 * 512
-	mov ah, 0x02
-	mov al, 16
-	mov ch, 0
-	mov cl, 1
-	mov dh, 1
-	mov dl, [BootDrive]
-	int 0x13
-	jc disk_error
-
-	mov ax, 0x3000
- 	mov es, ax
-	xor bx, bx
-	mov ah, 0x02
-	mov al, 2 ; old: 3
-	mov ch, 0
-	mov cl, 17
-	mov dh, 1
-	mov dl, [BootDrive]
-	int 0x13
-	jc disk_error
-	%endif 0
 
 	jmp 0x0:0x8000
 

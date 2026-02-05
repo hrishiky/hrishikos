@@ -17,7 +17,7 @@
 #define ELF_ERROR_MESSAGE_INVALID_HEADER "elf header is invalid"
 
 
-typedef struct {
+typedef struct __attribute__((packed)) {
 	unsigned char e_ident[ELF_IDENT_SIZE];
 	unsigned short e_type;
 	unsigned short e_machine;
@@ -34,7 +34,7 @@ typedef struct {
 	unsigned short e_shstrndx;
 } Elf64_Ehdr;
 
-typedef struct {
+typedef struct __attribute__((packed)) {
 	unsigned int p_type;
 	unsigned int p_flags;
 	unsigned long p_offset;

@@ -8,49 +8,49 @@ void elf_check_header(void* elf) {
 	    ehdr->e_ident[1] != 'E' ||
 	    ehdr->e_ident[2] != 'L' ||
 	    ehdr->e_ident[3] != 'F' ) {
-		print(ELF_ERROR_MESSAGE_INVALID_HEADER, 0, 0);
+		vga_text_print(ELF_ERROR_MESSAGE_INVALID_HEADER);
 		__asm__("hlt");
 	}
 
 	if (ehdr->e_ident[4] != ELF_CLASS64) {
-		print(ELF_ERROR_MESSAGE_INVALID_HEADER, 0, 0);
+		vga_text_print(ELF_ERROR_MESSAGE_INVALID_HEADER);
 		__asm__("hlt");
 	}
 
 	if (ehdr->e_ident[5] != ELF_LITTLE_ENDIAN) {
-		print(ELF_ERROR_MESSAGE_INVALID_HEADER, 0, 0);
+		vga_text_print(ELF_ERROR_MESSAGE_INVALID_HEADER);
 		__asm__("hlt");
 	}
 
 	if (ehdr->e_ident[6] != ELF_VERSION) {
-		print(ELF_ERROR_MESSAGE_INVALID_HEADER, 0, 0);
+		vga_text_print(ELF_ERROR_MESSAGE_INVALID_HEADER);
 		__asm__("hlt");
 	}
 
 	if (ehdr->e_type != ELF_ET_EXEC &&
 	    ehdr->e_type != ELF_ET_DYN) {
-		print(ELF_ERROR_MESSAGE_INVALID_HEADER, 0, 0);
+		vga_text_print(ELF_ERROR_MESSAGE_INVALID_HEADER);
 		__asm__("hlt");
 	}
 
 	if (ehdr->e_machine != ELF_EM_X86_64) {
-		print(ELF_ERROR_MESSAGE_INVALID_HEADER, 0, 0);
+		vga_text_print(ELF_ERROR_MESSAGE_INVALID_HEADER);
 		__asm__("hlt");
 	}
 
 
 	if (ehdr->e_ehsize != ELF_EHDR_SIZE) {
-		print(ELF_ERROR_MESSAGE_INVALID_HEADER, 0, 0);
+		vga_text_print(ELF_ERROR_MESSAGE_INVALID_HEADER);
 		__asm__("hlt");
 	}
 
 	if (ehdr->e_phentsize != ELF_PHDR_SIZE) {
-		print(ELF_ERROR_MESSAGE_INVALID_HEADER, 0, 0);
+		vga_text_print(ELF_ERROR_MESSAGE_INVALID_HEADER);
 		__asm__("hlt");
 	}
 
 	if (ehdr->e_phnum < ELF_PHDR_MINIMUM_COUNT) {
-		print(ELF_ERROR_MESSAGE_INVALID_HEADER, 0, 0);
+		vga_text_print(ELF_ERROR_MESSAGE_INVALID_HEADER);
 		__asm__("hlt");
 	}
 }

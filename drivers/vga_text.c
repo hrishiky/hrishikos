@@ -1,29 +1,58 @@
 #include "vga_text.h"
 
+#define VGA_TEXT_ROWS 25
+#define VGA_TEXT_COLUMNS 80
+
+#define VGA_TEXT_BW 0x0F
+
 char* vga = (char*)0xB8000;
 
-int strlen(char* string) {
-        int length = 0;
+unsigned short CursorX = 0;
+unsigned short CursorY = 0;
 
-        while (string[length] != '\0') {
-                length++;
-        }
+unsigned short strlen(char* string) {
+	unsigned short length = 0;
 
-        return length;
+	while(1) {
+		if (string[length] == '\0') {
+			return length;
+		}
+
+		length++;
+	}
 }
 
-void print(char* string, int x, int y) {
-        for(int i = 0; i < strlen(string); i++) {
-                if (x > 80) {
-                        y++;
-                        x -= 80;
-                } else if (y > 25) {
-                        y -= 25;
-                }
+void shift_cursor(unsigned short offset) {
+	CursorX += offset;
 
-                vga[2 * ((y * 80) + x)] = string[i];
-                vga[2 * ((y * 80) + x) + 1] = 0x0F;
+	while (CursorX >= VGA_TEXT_COLUMNS) {
+		CursorX -= VGA_TEXT_COLUMNS;
+		CursorY++;
 
-                x++;
-        }
+		if (CursorY >= VGA_TEXT_ROWS) {
+			CursorY -= VGA_TEXT_ROWS;
+		}
+	}
+
+}
+
+void vga_text_print_position(char* string, unsigned char x, unsigned char y) {
+	for (unsigned short i = 0; i < strlen(string); i++) {
+		if (x > 80) {
+			y++;
+			x -= VGA_TEXT_COLUMNS;
+		} else if (y > 25) {
+ 			y -= VGA_TEXT_COLUMNS;
+		}
+
+		vga[2 * ((y * VGA_TEXT_COLUMNS) + x)] = string[i];
+		vga[2 * ((y * VGA_TEXT_COLUMNS) + x) + 1] = VGA_TEXT_BW;
+
+		x++;
+	}
+}
+
+void vga_text_print(char* string) {
+	vga_text_print_position(string, CursorX, CursorY);
+	shift_cursor(strlen(string));
 }

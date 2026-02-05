@@ -1,8 +1,7 @@
 #ifndef VGA_TEXT_H
 #define VGA_TEXT_H
 
-int strlen(char* string);
-
-void print(char* string, int x, int y);
+void vga_text_print_position(char* string, unsigned char x, unsigned char y);
+void vga_text_print(char* string);
 
 #endif
