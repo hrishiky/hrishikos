@@ -5,6 +5,27 @@ __attribute__((aligned(0x10)))
 Idt_Entry idt[IDT_ENTRY_COUNT];
 Idtr idtr;
 
+void idt_outb(unsigned char data, unsigned short port) {
+        __asm__ volatile (
+                "outb %0, %1"
+                :
+                : "a"(data), "d"(port)
+        );
+}
+
+unsigned char idt_inb(unsigned short port) {
+        unsigned char data;
+
+        __asm__ volatile (
+                "inb %1, %0"
+                : "=a"(data)
+                : "d"(port)
+        );
+
+        return data;
+
+}
+
 void idt_idt_zero_fill(void) {
 	for (unsigned short i = 0; i < IDT_ENTRY_COUNT; i++) {
 		idt[i].isr_low = 0;
@@ -30,7 +51,7 @@ void idt_idt_entry_fill(unsigned short index, void (*stub)(void)) {
 	idt[index].ist = 0;
 	idt[index].attributes = IDT_ATTRIBUTE_INTERRUPT_GATE;
 	idt[index].isr_mid = (address >> 16) & 0xFFFF;
-	idt[index].isr_high = 0;
+	idt[index].isr_high = (address >> 32) & 0xFFFFFFFF;
 	idt[index].reserved = 0;
 }
 
@@ -60,8 +81,30 @@ void idt_load_idtr(void) {
 		:
 	);
 
-	//__asm__ volatile ("hlt");
-	 __asm__ volatile ("sti");
+	__asm__ volatile ("sti");
+}
+
+void idt_irq_setup(void) {
+        unsigned char a1 = idt_inb(0x21);
+        unsigned char a2 = idt_inb(0xA1);
+
+	idt_outb(0x11, 0x20);
+	idt_outb(0x11, 0xA0);
+
+	idt_outb(0x20, 0x21);
+	idt_outb(0x28, 0xA1);
+
+	idt_outb(0x04, 0x21);
+	idt_outb(0x02, 0xA1);
+
+	idt_outb(0x01, 0x21);
+	idt_outb(0x01, 0xA1);
+
+	idt_outb(a1, 0x21);
+	idt_outb(a2, 0xA1);
+
+	idt_outb(0xFD, 0x21);
+	idt_outb(0xFF, 0xA1);
 }
 
 void idt_init(void){
@@ -70,6 +113,8 @@ void idt_init(void){
 
 	idt_idt_fill();
 	idt_idtr_fill();
+
+	idt_irq_setup();
 
 	idt_load_idtr();
 

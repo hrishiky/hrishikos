@@ -13,7 +13,7 @@
 
 #define KERNEL_CS 0x08
 
-#define IDT_LOAD_SUCCESS_MESSAGE "idt loaded"
+#define IDT_LOAD_SUCCESS_MESSAGE "IDT loaded.\n"
 
 #define INT_CPU_LIST \
 	X(0)  X(1)  X(2)  X(3)  X(4)  X(5)  X(6)  X(7) \

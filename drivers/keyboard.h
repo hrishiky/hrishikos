@@ -1,0 +1,117 @@
+#ifndef KEYBOARD_H
+#define KEYBOARD_H
+
+#define KEYBOARD_PORT_DATA 0x60
+#define KEYBOARD_PORT_STATUS 0x64
+#define KEYBOARD_PORT_COMMAND 0x64
+
+#define KEYBOARD_PIC1_PORT_COMMAND 0x20
+#define KEYBOARD_PIC1_PORT_DATA 0x21
+#define KEYBOARD_PIC2_PORT_COMMAND 0xA0
+#define KEYBOARD_PIC2_PORT_DATA 0xA1
+#define KEYBOARD_EOI 0x20
+
+#define KEYBOARD_BUFFER_SIZE 256
+
+#define KEYBOARD_MASK_BASE 0x7F
+#define KEYBOARD_MASK_BREAK 0x80
+
+#define KEYBOARD_EXTENDED 0xE0
+#define KEYBOARD_EXTENDED_SET 1
+#define KEYBOARD_EXTENDED_CLEAR 0
+
+#define KEYBOARD_SHIFT_SET 1
+#define KEYBOARD_SHIFT_CLEAR 0
+#define KEYBOARD_CTRL_SET 1
+#define KEYBOARD_CTRL_CLEAR 0
+#define KEYBOARD_ALT_SET 1
+#define KEYBOARD_ALT_CLEAR 0
+#define KEYBOARD_MAKE_LEFT_SHIFT 0x2A
+#define KEYBOARD_BREAK_LEFT_SHIFT 0x2A
+#define KEYBOARD_MAKE_RIGHT_SHIFT 0x36
+#define KEYBOARD_BREAK_RIGHT_SHIFT 0x36
+#define KEYBOARD_MAKE_CTRL 0x1D
+#define KEYBOARD_BREAK_CTRL 0x1D
+#define KEYBOARD_MAKE_ALT 0x38
+#define KEYBOARD_BREAK_ALT 0x38
+
+#define KEYBOARD_UPPERCASE_OFFSET 0x20
+
+#define KEYBOARD_KEY_CAPSLOCK 0x3A
+
+#define KEYBOARD_KEY_A 0x1E
+#define KEYBOARD_KEY_B 0x30
+#define KEYBOARD_KEY_C 0x2E
+#define KEYBOARD_KEY_D 0x20
+#define KEYBOARD_KEY_E 0x12
+#define KEYBOARD_KEY_F 0x21
+#define KEYBOARD_KEY_G 0x22
+#define KEYBOARD_KEY_H 0x23
+#define KEYBOARD_KEY_I 0x17
+#define KEYBOARD_KEY_J 0x24
+#define KEYBOARD_KEY_K 0x25
+#define KEYBOARD_KEY_L 0x26
+#define KEYBOARD_KEY_M 0x32
+#define KEYBOARD_KEY_N 0x31
+#define KEYBOARD_KEY_O 0x18
+#define KEYBOARD_KEY_P 0x19
+#define KEYBOARD_KEY_Q 0x10
+#define KEYBOARD_KEY_R 0x13
+#define KEYBOARD_KEY_S 0x1F
+#define KEYBOARD_KEY_T 0x14
+#define KEYBOARD_KEY_U 0x16
+#define KEYBOARD_KEY_V 0x2F
+#define KEYBOARD_KEY_W 0x11
+#define KEYBOARD_KEY_X 0x2D
+#define KEYBOARD_KEY_Y 0x15
+#define KEYBOARD_KEY_Z 0x2C
+
+#define KEYBOARD_KEY_1_EXCLAMATION 0x02
+#define KEYBOARD_KEY_2_AT 0x03
+#define KEYBOARD_KEY_3_HASH 0x04
+#define KEYBOARD_KEY_4_DOLLAR 0x05
+#define KEYBOARD_KEY_5_PERCENT 0x06
+#define KEYBOARD_KEY_6_CARET 0x07
+#define KEYBOARD_KEY_7_AMPERSAND 0x08
+#define KEYBOARD_KEY_8_ASTERISK 0x09
+#define KEYBOARD_KEY_9_LEFT_PARENTHESIS 0x0A
+#define KEYBOARD_KEY_0_RIGHT_PARENTHESIS 0x0B
+
+#define KEYBOARD_KEY_MINUS_UNDERSCORE 0x0C
+#define KEYBOARD_KEY_EQUAL_PLUS 0x0D
+#define KEYBOARD_KEY_LEFT_BRACKET_BRACE 0x1A
+#define KEYBOARD_KEY_RIGHT_BRACKET_BRACE 0x1B
+#define KEYBOARD_KEY_SEMICOLON_COLON 0x27
+#define KEYBOARD_KEY_APOSTROPHE_QUOTE 0x28
+#define KEYBOARD_KEY_BACKTICK_TILDE 0x29
+#define KEYBOARD_KEY_BACKSLASH_PIPE 0x2B
+#define KEYBOARD_KEY_COMMA_LESS_THAN 0x33
+#define KEYBOARD_KEY_PERIOD_GREATER_THAN 0x34
+#define KEYBOARD_KEY_SLASH_QUESTION 0x35
+
+#define KEYBOARD_KEY_ENTER 0x1C
+#define KEYBOARD_KEY_BACKSPACE 0x0E
+#define KEYBOARD_KEY_TAB 0x0F
+#define KEYBOARD_KEY_SPACE 0x39
+
+typedef struct {
+        unsigned char base;
+        char ascii;
+} keyboard_letter_entry;
+
+typedef struct {
+        unsigned char base;
+        char normal;
+        char shifted;
+} keyboard_digit_symbol_entry;
+
+typedef struct {
+        unsigned char base;
+        char ascii;
+} keyboard_control_entry;
+
+void keyboard_buffer_write(char character);
+char keyboard_buffer_read(void);
+void keyboard_central_handler(unsigned char scancode);
+
+#endif
