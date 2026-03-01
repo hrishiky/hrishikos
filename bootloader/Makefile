@@ -14,7 +14,6 @@ LOADER_BIN := $(BUILD_DIR)/elf_loader.bin
 
 CFLAGS += -ffreestanding -nostdlib -gdwarf-4 -m64 -ggdb3 -I../drivers
 
-
 all: $(BOOTLOADER_OBJS) $(LOADER_BIN)
 
 $(BUILD_DIR)/%.bin: %.asm

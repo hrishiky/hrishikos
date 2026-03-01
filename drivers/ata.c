@@ -1,37 +1,6 @@
 #include "ata.h"
 #include "vga_text.h"
-
-void outb(unsigned char data, unsigned short port) {
-	__asm__ volatile (
-		"outb %0, %1"
-		:
-		: "a"(data), "d"(port)
-	);
-}
-
-
-unsigned char inb(unsigned short port) {
-	unsigned char data;
-
-	__asm__ volatile (
-		"inb %1, %0"
-		: "=a"(data)
-		: "d"(port)
-	);
-
-	return data;
-
-}
-
-void rep_insw(unsigned short* buffer, unsigned short count, unsigned short port) {
-	__asm__ volatile (
-		"rep insw"
-		: "+D"(buffer), "+c"(count)
-		: "d"(port)
-		: "memory"
-	);
-}
-
+#include "sys_io.h"
 
 void ata_check_error(void) {
 	if ((inb(ATA_REGISTER_STATUS) & ATA_STATUS_ERR) != 0) {
