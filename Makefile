@@ -3,7 +3,7 @@ BUILD_DIR=build
 BOOTLOADER=$(BUILD_DIR)/bootloader/bootloader.bin
 MODE=$(BUILD_DIR)/bootloader/mode.bin
 LOADER=$(BUILD_DIR)/bootloader/elf_loader.bin
-OS=$(BUILD_DIR)/os/os
+OS=$(BUILD_DIR)/os/os.elf
 
 DISK_IMG=$(BUILD_DIR)/disk.img
 
@@ -14,10 +14,7 @@ OS_SECTORS=$(shell echo $$((($$(stat --printf="%s" $(OS)) + 511) / 512)))
 
 all: bootdisk
 
-.PHONY: bootdisk drivers bootloader os
-
-drivers:
-	make -C drivers
+.PHONY: bootdisk bootloader os
 
 bootloader:
 	make -C bootloader
@@ -25,7 +22,7 @@ bootloader:
 os:
 	make -C os
 
-bootdisk: drivers bootloader os
+bootdisk: bootloader os
 	dd if=/dev/zero of=$(DISK_IMG) bs=512 count=2880
 	dd conv=notrunc if=$(BOOTLOADER) of=$(DISK_IMG) bs=512 count=1 seek=0
 	dd conv=notrunc if=$(MODE) of=$(DISK_IMG) bs=512 count=$(MODE_SECTORS) seek=1
@@ -39,7 +36,6 @@ qemu-no-debug:
 	qemu-system-x86_64 -d in_asm,cpu_reset,int,guest_errors -no-reboot -machine pc -drive file=$(DISK_IMG),format=raw,if=ide -boot c
 
 clean:
-	make -C drivers clean
 	make -C bootloader clean
 	make -C os clean
 	rm $(DISK_IMG)

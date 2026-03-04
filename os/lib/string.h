@@ -1,7 +1,6 @@
 #ifndef STRING_H
 #define STRING_H
 
-void* memcpy(void* destination, const void* source, unsigned long length);
 unsigned long strlen(char* string);
 unsigned char strcmp(char* string_1, char* string_2);
 

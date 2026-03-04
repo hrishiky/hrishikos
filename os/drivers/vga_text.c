@@ -1,11 +1,15 @@
+#include "mem.h"
 #include "vga_text.h"
 #include "sys_io.h"
 
 char* vga = (char*)0xB8000;
 long vga_text_cursor_x = 0;
 long vga_text_cursor_y = 0;
-char* vga_text_hex_lookup = "0123456789ABCDEF";
 
+unsigned char vga_text_foreground_color = VGA_TEXT_COLOR_WHITE;
+unsigned char vga_text_background_color = VGA_TEXT_COLOR_BLACK;
+
+char* vga_text_hex_lookup = "0123456789ABCDEF";
 
 void vga_text_blinking_cursor_enable(unsigned char start, unsigned char end) {
 	outb(0x0A, 0x3D4);
@@ -32,8 +36,12 @@ void vga_text_blinking_cursor_shift(void) {
 }
 
 void vga_text_scroll(long count) {
-	;
+	const long row_bytes = VGA_TEXT_COLUMNS * 2;
+
+	memcpy((void*) vga, (void*) vga + count * row_bytes, (unsigned long) (VGA_TEXT_ROWS - count) * row_bytes);
+	memset((void*) vga + (VGA_TEXT_ROWS - count) * row_bytes, (int) 0, (unsigned long) count * row_bytes);
 }
+
 
 void vga_text_cursor_rectify(void) {
 	if (vga_text_cursor_x > VGA_TEXT_COLUMNS_MAXIMUM) {
@@ -70,20 +78,22 @@ void vga_text_cursor_shift(long x, long y) {
 }
 
 void vga_text_clear_screen(void) {
-	unsigned long long* buffer = (unsigned long long*)vga;
 
-	for (unsigned short i = 0; i < VGA_TEXT_BUFFER_LONG_LONG_COUNT; i++) {
-		buffer[i] = 0;
+	for (unsigned short i = 0; i < VGA_TEXT_BUFFER_SIZE / 2; i++) {
+		vga[2 * i] = ' ';
 	}
 
 	vga_text_cursor_shift(0, 0);
 }
 
 void vga_text_print_character(char character) {
+	unsigned char attribute = (vga_text_background_color << 4) | (vga_text_foreground_color & 0x0F);
+
 	switch (character) {
 		case '\n':
 			vga_text_cursor_y++;
 			vga_text_cursor_shift(0, vga_text_cursor_y);
+
 			return;
 
 		case '\b':
@@ -91,13 +101,43 @@ void vga_text_print_character(char character) {
 			vga_text_cursor_shift(vga_text_cursor_x, vga_text_cursor_y);
 
 			vga[2 * ((vga_text_cursor_y * VGA_TEXT_COLUMNS) + vga_text_cursor_x)] = ' ';
-			vga[2 * ((vga_text_cursor_y * VGA_TEXT_COLUMNS) + vga_text_cursor_x) + 1] = VGA_TEXT_BW;
+			vga[2 * ((vga_text_cursor_y * VGA_TEXT_COLUMNS) + vga_text_cursor_x) + 1] = attribute;
 
 			return;
 
 		default:
 			vga[2 * ((vga_text_cursor_y * VGA_TEXT_COLUMNS) + vga_text_cursor_x)] = character;
-			vga[2 * ((vga_text_cursor_y * VGA_TEXT_COLUMNS) + vga_text_cursor_x) + 1] = VGA_TEXT_BW;
+			vga[2 * ((vga_text_cursor_y * VGA_TEXT_COLUMNS) + vga_text_cursor_x) + 1] = attribute;
+
+			vga_text_cursor_x++;
+			vga_text_cursor_shift(vga_text_cursor_x, vga_text_cursor_y);
+
+			return;
+	}
+}
+
+void vga_text_print_character_color(char character, unsigned char foreground_color, unsigned char background_color) {
+	unsigned char attribute = (background_color << 4) | (foreground_color & 0x0F);
+
+	switch (character) {
+		case '\n':
+			vga_text_cursor_y++;
+			vga_text_cursor_shift(0, vga_text_cursor_y);
+
+			return;
+
+		case '\b':
+			vga_text_cursor_x--;
+			vga_text_cursor_shift(vga_text_cursor_x, vga_text_cursor_y);
+
+			vga[2 * ((vga_text_cursor_y * VGA_TEXT_COLUMNS) + vga_text_cursor_x)] = ' ';
+			vga[2 * ((vga_text_cursor_y * VGA_TEXT_COLUMNS) + vga_text_cursor_x) + 1] = attribute;
+
+			return;
+
+		default:
+			vga[2 * ((vga_text_cursor_y * VGA_TEXT_COLUMNS) + vga_text_cursor_x)] = character;
+			vga[2 * ((vga_text_cursor_y * VGA_TEXT_COLUMNS) + vga_text_cursor_x) + 1] = attribute;
 
 			vga_text_cursor_x++;
 			vga_text_cursor_shift(vga_text_cursor_x, vga_text_cursor_y);
@@ -123,7 +163,6 @@ void vga_text_print_position(char* string, unsigned char x, unsigned char y) {
 
 		vga[2 * ((y * VGA_TEXT_COLUMNS) + x)] = string[i];
 		vga[2 * ((y * VGA_TEXT_COLUMNS) + x) + 1] = VGA_TEXT_BW;
-
 		x++;
 	}
 }
@@ -134,6 +173,12 @@ void vga_text_print(char* string) {
 	}
 }
 
+void vga_text_print_color(char* string, unsigned char foreground_color, unsigned char background_color) {
+	for (unsigned long i = 0; string[i] != '\0'; i++) {
+		vga_text_print_character_color(string[i], foreground_color, background_color);
+	}
+}
+
 void vga_text_print_hex(unsigned char* data, unsigned int byte_count, unsigned char number_length) {
 	for (unsigned int i = 0; i < byte_count; i++) {
 		if (i % (number_length / 2) == 0) {
@@ -141,5 +186,18 @@ void vga_text_print_hex(unsigned char* data, unsigned int byte_count, unsigned c
 		}
 
 		vga_text_print_character(vga_text_hex_lookup[data[i]]);
+	}
+}
+
+void vga_text_change_colors(unsigned char foreground_color, unsigned char background_color) {
+	vga_text_foreground_color = foreground_color;
+	vga_text_background_color = background_color;
+}
+
+void vga_text_refresh_colors(void) {
+	unsigned char attribute = (vga_text_background_color << 4) | (vga_text_foreground_color & 0x0F);
+
+	for (unsigned short i = 0; i < VGA_TEXT_BUFFER_SIZE / 2; i++) {
+		vga[1 + i * 2] = attribute;
 	}
 }

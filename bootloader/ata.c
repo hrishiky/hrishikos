@@ -1,18 +1,44 @@
 #include "ata.h"
-#include "vga_text.h"
-#include "sys_io.h"
+
+void outb(unsigned char data, unsigned short port) {
+        __asm__ volatile (
+                "outb %0, %1"
+                :
+                : "a"(data), "d"(port)
+        );
+}
+
+
+unsigned char inb(unsigned short port) {
+        unsigned char data;
+
+        __asm__ volatile (
+        "inb %1, %0"
+                : "=a"(data)
+                : "d"(port)
+        );
+
+        return data;
+}
+
+void rep_insw(unsigned short* buffer, unsigned short count, unsigned short port) {
+        __asm__ volatile (
+                "rep insw"
+                : "+D"(buffer), "+c"(count)
+                : "d"(port)
+                : "memory"
+        );
+}
 
 void ata_check_error(void) {
 	if ((inb(ATA_REGISTER_STATUS) & ATA_STATUS_ERR) != 0) {
-		vga_text_print(ATA_ERROR_MESSAGE);
+		// vga_text_print(ATA_ERROR_MESSAGE);
 		__asm__ volatile ("hlt");
 	}
 }
 
 void ata_wait_bsy(void) {
-	while (inb(ATA_REGISTER_STATUS) & ATA_STATUS_BSY) {
-		;
-	}
+	while (inb(ATA_REGISTER_STATUS) & ATA_STATUS_BSY) {}
 }
 
 void ata_wait_drdy(void) {
@@ -20,7 +46,7 @@ void ata_wait_drdy(void) {
 		unsigned char status = inb(ATA_REGISTER_STATUS);
 
 		if (status & ATA_STATUS_ERR) {
-			vga_text_print(ATA_ERROR_MESSAGE);
+			// vga_text_print(ATA_ERROR_MESSAGE);
 			__asm__ volatile ("hlt");
 		}
 
@@ -35,7 +61,7 @@ void ata_wait_drq(void) {
 		unsigned char status = inb(ATA_REGISTER_STATUS);
 
 		if (status & ATA_STATUS_ERR) {
-			vga_text_print(ATA_ERROR_MESSAGE);
+			// vga_text_print(ATA_ERROR_MESSAGE);
 			__asm__ volatile ("hlt");
 		}
 
@@ -74,5 +100,5 @@ void ata_read(unsigned short* buffer, unsigned char count) {
 		ata_wait_bsy();
 	}
 
-	vga_text_print(ATA_SUCCESS_MESSAGE);
+	// vga_text_print(ATA_SUCCESS_MESSAGE);
 }

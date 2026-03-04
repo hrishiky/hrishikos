@@ -45,7 +45,8 @@ PD:
 	dq 0x00200000 + 0x83
 	dq 0x00400000 + 0x83
 	dq 0x00600000 + 0x83
-	times 508 dq 0
+	dq 0x00800000 + 0x83
+	times 507 dq 0
 
 real_mode:
 	cli

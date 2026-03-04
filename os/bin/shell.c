@@ -2,14 +2,25 @@
 #include "shell.h"
 #include "vga_text.h"
 #include "string.h"
+#include "sys_io.h"
+#include "mem.h"
 
 extern unsigned char vga_text_cursor_x;
 extern unsigned char vga_text_cursor_y;
 
 Shell_Command commands[] = {
 	{ "help", &shell_command_help },
-	{ "echo", &shell_command_echo }
+	{ "echo", &shell_command_echo },
+	{ "clear", &shell_command_clear },
+	{ "reboot", &shell_command_reboot },
+	{ "color", &shell_command_color }
 };
+
+unsigned short shell_command_history_start = 0;
+Shell_Arguments shell_command_history[SHELL_COMMAND_HISTORY_COUNT];
+
+unsigned char shell_foreground_color = VGA_TEXT_COLOR_WHITE;
+unsigned char shell_background_color = VGA_TEXT_COLOR_BLACK;
 
 unsigned char shell_input_start_x;
 unsigned char shell_input_start_y;
@@ -22,16 +33,14 @@ void shell_print_prompt(void) {
 }
 
 void shell_print_spacing(void) {
-	if (vga_text_cursor_x == 0) {
-		vga_text_print_character('\n');
-	} else {
+	if (vga_text_cursor_x != 0) {
 		vga_text_print("\n\n");
 	}
 }
 
 char* shell_get_input(void) {
 	static char input[SHELL_COMMAND_LENGTH_MAXIMUM];
-	input[0] = '\0';
+	memset(input, 0, SHELL_COMMAND_LENGTH_MAXIMUM);
 
 	unsigned short index = 0;
 
@@ -110,12 +119,24 @@ Shell_Arguments shell_input_parse(char* input) {
 	return arguments;
 }
 
-void shell_run_command(int argc, char argv[SHELL_ARGC_MAXIMUM][SHELL_ARGV_MAXIMUM]) {
+void shell_command_history_add(Shell_Arguments arguments) {
+	if (shell_command_history_start >= SHELL_COMMAND_HISTORY_COUNT) {
+		shell_command_history_start -= SHELL_COMMAND_HISTORY_COUNT;
+	}
+
+	shell_command_history[shell_command_history_start++] = arguments;
+}
+
+void shell_run_command(Shell_Arguments arguments) {
 	for (unsigned short i = 0; i < SHELL_COMMANDS_COUNT; i++) {
-		if (strcmp(commands[i].command, argv[0]) == 0) {
-			commands[i].function_pointer(argc, argv);
+		if (strcmp(commands[i].command, arguments.argv[0]) == 0) {
+			shell_command_history_add(arguments);
+			commands[i].function_pointer(arguments);
+			return;
 		}
 	}
+
+	vga_text_print("invalid command\nuse 'help' to see valid commands");
 }
 
 void shell_main(void) {
@@ -128,13 +149,13 @@ void shell_main(void) {
 
 		Shell_Arguments arguments = shell_input_parse(input);
 
-		shell_run_command(arguments.argc, arguments.argv);
+		shell_run_command(arguments);
 
 		shell_print_spacing();
 	}
 }
 
-void shell_command_help(int argc, char argv[SHELL_ARGC_MAXIMUM][SHELL_ARGV_MAXIMUM]) {
+void shell_command_help(Shell_Arguments arguments) {
 	vga_text_print("currently implemented commands:\n");
 
 	for (unsigned short i = 0; i < SHELL_COMMANDS_COUNT; i++) {
@@ -143,9 +164,32 @@ void shell_command_help(int argc, char argv[SHELL_ARGC_MAXIMUM][SHELL_ARGV_MAXIM
 	}
 }
 
-void shell_command_echo(int argc, char argv[SHELL_ARGC_MAXIMUM][SHELL_ARGV_MAXIMUM]) {
-	for (int i = 1; i < argc; i++) {
-		vga_text_print(argv[i]);
+void shell_command_echo(Shell_Arguments arguments) {
+	for (int i = 1; i < arguments.argc; i++) {
+		vga_text_print(arguments.argv[i]);
 		vga_text_print_character(' ');
 	}
+}
+
+void shell_command_clear(Shell_Arguments arguments) {
+	vga_text_clear_screen();
+	vga_text_cursor_shift(0, 0);
+}
+
+void shell_command_reboot(Shell_Arguments arguments) {
+	__asm__ volatile (
+		"lidt (0)"
+		:
+		:
+		: "memory"
+	);
+
+	__asm__ volatile ("int $3");
+}
+
+void shell_command_color(Shell_Arguments arguments) {
+	//
+
+	vga_text_change_colors(VGA_TEXT_COLOR_WHITE, VGA_TEXT_COLOR_BLUE);
+	vga_text_refresh_colors();
 }
