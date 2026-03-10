@@ -1,6 +1,6 @@
 #include "ata.h"
 #include "vga_text.h"
-#include "sys_io.h"
+#include "asm_wrappers.h"
 
 void ata_check_error(void) {
 	if ((inb(ATA_REGISTER_STATUS) & ATA_STATUS_ERR) != 0) {

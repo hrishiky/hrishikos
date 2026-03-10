@@ -32,16 +32,26 @@
 void vga_text_blinking_cursor_enable(unsigned char start, unsigned char end);
 void vga_text_blinking_cursor_disable(void);
 void vga_text_blinking_cursor_shift(void);
+
 void vga_text_scroll(long count);
+
 void vga_text_cursor_rectify(void);
 void vga_text_cursor_shift(long x, long y);
+
+void vga_text_reset_screen(void);
 void vga_text_clear_screen(void);
+void vga_text_clear_segment(unsigned short start, unsigned short end);
+
 void vga_text_print_character(char character);
 void vga_text_print_character_color(char character, unsigned char foreground_color, unsigned char background_color);
+
 void vga_text_print_position(char* string, unsigned char x, unsigned char y);
 void vga_text_print(char* string);
 void vga_text_print_color(char* string, unsigned char foreground_color, unsigned char background_color);
-void vga_text_print_hex(unsigned char* data, unsigned int byte_count, unsigned char number_length);
+
+void vga_text_print_integer(long number);
+void vga_text_print_hex(long number);
+
 void vga_text_change_colors(unsigned char foreground_color, unsigned char background_color);
 void vga_text_refresh_colors(void);
 

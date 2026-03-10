@@ -1,4 +1,4 @@
-#include "sys_io.h"
+#include "asm_wrappers.h"
 
 void outb(unsigned char data, unsigned short port) {
 	__asm__ volatile (
@@ -28,4 +28,8 @@ void rep_insw(unsigned short* buffer, unsigned short count, unsigned short port)
 		: "d"(port)
 		: "memory"
 	);
+}
+
+void halt(void) {
+	__asm__ volatile ("hlt");
 }

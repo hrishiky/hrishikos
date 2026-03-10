@@ -48,6 +48,6 @@ typedef struct __attribute__((packed)) {
 
 void elf_check_header(void* elf);
 void elf_load_program_headers(void* elf);
-void elf_jump_entry_point(void* elf);
+void elf_jump_entry_point(void* elf, void* boot_info);
 
 #endif

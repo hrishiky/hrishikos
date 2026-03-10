@@ -22,10 +22,6 @@
 #define ATA_ERROR_MESSAGE "ata disk read failed"
 #define ATA_SUCCESS_MESSAGE "ata disk read done"
 
-void outb(unsigned char data, unsigned short port);
-unsigned char inb(unsigned short port);
-void rep_insw(unsigned short* buffer, unsigned short count, unsigned short port);
-
 void ata_check_error(void);
 void ata_wait_bsy(void);
 void ata_wait_drdy(void);

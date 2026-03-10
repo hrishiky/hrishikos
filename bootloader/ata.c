@@ -1,33 +1,33 @@
 #include "ata.h"
 
 void outb(unsigned char data, unsigned short port) {
-        __asm__ volatile (
-                "outb %0, %1"
-                :
-                : "a"(data), "d"(port)
-        );
+	__asm__ volatile (
+		"outb %0, %1"
+		:
+		: "a"(data), "d"(port)
+	);
 }
 
 
 unsigned char inb(unsigned short port) {
-        unsigned char data;
+	unsigned char data;
 
-        __asm__ volatile (
-        "inb %1, %0"
-                : "=a"(data)
-                : "d"(port)
-        );
+	__asm__ volatile (
+		"inb %1, %0"
+		: "=a"(data)
+		: "d"(port)
+	);
 
-        return data;
+	return data;
 }
 
 void rep_insw(unsigned short* buffer, unsigned short count, unsigned short port) {
-        __asm__ volatile (
-                "rep insw"
-                : "+D"(buffer), "+c"(count)
-                : "d"(port)
-                : "memory"
-        );
+	__asm__ volatile (
+		"rep insw"
+		: "+D"(buffer), "+c"(count)
+		: "d"(port)
+		: "memory"
+	);
 }
 
 void ata_check_error(void) {

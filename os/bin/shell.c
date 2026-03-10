@@ -1,19 +1,24 @@
 #include "keyboard.h"
 #include "shell.h"
 #include "vga_text.h"
+#include "stdio.h"
 #include "string.h"
-#include "sys_io.h"
-#include "mem.h"
+#include "asm_wrappers.h"
+#include "pmm.h"
 
 extern unsigned char vga_text_cursor_x;
 extern unsigned char vga_text_cursor_y;
+extern Boot_Info* pmm_boot_info;
+extern unsigned int pmm_memory_size;
 
 Shell_Command commands[] = {
 	{ "help", &shell_command_help },
 	{ "echo", &shell_command_echo },
 	{ "clear", &shell_command_clear },
 	{ "reboot", &shell_command_reboot },
-	{ "color", &shell_command_color }
+	{ "color", &shell_command_color },
+	{ "halt", &shell_command_halt },
+	{ "meminfo", &shell_command_meminfo }
 };
 
 unsigned short shell_command_history_start = 0;
@@ -33,7 +38,13 @@ void shell_print_prompt(void) {
 }
 
 void shell_print_spacing(void) {
-	if (vga_text_cursor_x != 0) {
+	if (vga_text_cursor_x == 0) {
+		if (vga_text_cursor_y == 0) {
+			return;
+		} else {
+			vga_text_print_character('\n');
+		}
+	} else {
 		vga_text_print("\n\n");
 	}
 }
@@ -91,24 +102,35 @@ Shell_Arguments shell_input_parse(char* input) {
 	}
 
 	unsigned short argv_index = 0;
+	unsigned long i = 0;
 
-	for (unsigned long i = 0; i < strlen(input); i++) {
+	while (input[i] == SHELL_COMMAND_DELIMITER) {
+		i++;
+	}
+
+	for (; i < strlen(input); i++) {
 		if (input[i] == SHELL_COMMAND_DELIMITER) {
-			if (arguments.argc >= SHELL_ARGC_MAXIMUM) {
-				return arguments;
+			while (input[i + 1] == SHELL_COMMAND_DELIMITER) {
+				i++;
 			}
 
-			arguments.argc++;
-			argv_index = 0;
+			if (argv_index > 0) {
+				arguments.argv[arguments.argc][argv_index] = '\0';
+				arguments.argc++;
+				argv_index = 0;
+
+				if (arguments.argc >= SHELL_ARGC_MAXIMUM) {
+					return arguments;
+				}
+			}
+
 			continue;
 		}
 
-		if (argv_index >= SHELL_ARGV_MAXIMUM) {
-			continue;
+		if (argv_index < SHELL_ARGV_MAXIMUM - 1) {
+			arguments.argv[arguments.argc][argv_index++] = input[i];
+			arguments.argv[arguments.argc][argv_index] = '\0';
 		}
-
-		arguments.argv[arguments.argc][argv_index++] = input[i];
-		arguments.argv[arguments.argc][argv_index] = '\0';
 	}
 
 	if (argv_index > 0) {
@@ -119,6 +141,7 @@ Shell_Arguments shell_input_parse(char* input) {
 	return arguments;
 }
 
+
 void shell_command_history_add(Shell_Arguments arguments) {
 	if (shell_command_history_start >= SHELL_COMMAND_HISTORY_COUNT) {
 		shell_command_history_start -= SHELL_COMMAND_HISTORY_COUNT;
@@ -128,18 +151,25 @@ void shell_command_history_add(Shell_Arguments arguments) {
 }
 
 void shell_run_command(Shell_Arguments arguments) {
+	if (strcmp(arguments.argv[0], "\0")) {
+		return;
+	}
+
 	for (unsigned short i = 0; i < SHELL_COMMANDS_COUNT; i++) {
-		if (strcmp(commands[i].command, arguments.argv[0]) == 0) {
+		if (strcmp(commands[i].command, arguments.argv[0])) {
 			shell_command_history_add(arguments);
 			commands[i].function_pointer(arguments);
 			return;
 		}
 	}
 
-	vga_text_print("invalid command\nuse 'help' to see valid commands");
+	vga_text_print("invalid command '");
+	vga_text_print(arguments.argv[0]);
+	vga_text_print("'\nuse 'help' to see valid commands");
 }
 
 void shell_main(void) {
+	vga_text_clear_screen();
 	vga_text_blinking_cursor_enable(0, 15);
 
 	while (1) {
@@ -188,8 +218,31 @@ void shell_command_reboot(Shell_Arguments arguments) {
 }
 
 void shell_command_color(Shell_Arguments arguments) {
-	//
+	if (arguments.argc != 3) {
+		vga_text_print("Usage: color [FOREGROUND_COLOR] [BACKGROUND_COLOR]\n");
 
-	vga_text_change_colors(VGA_TEXT_COLOR_WHITE, VGA_TEXT_COLOR_BLUE);
+		return;
+	}
+
+	vga_text_change_colors(strtol(arguments.argv[1], 0), strtol(arguments.argv[2], 0));
 	vga_text_refresh_colors();
+}
+
+void shell_command_halt(Shell_Arguments arguments) {
+	while (inb(0x64) & 1) {
+		inb(0x60);
+	}
+
+	halt();
+}
+
+void shell_command_meminfo(Shell_Arguments arguments) {
+	E820_Entry* memory_map = (E820_Entry*) pmm_boot_info->entries;
+
+	printf("pmm total memory size: %d KB\n\n", pmm_memory_size / 8000);
+	printf("physical memory map:\n");
+
+	for (unsigned char i = 0; i < pmm_boot_info->entry_count; i++) {
+		printf("region %d: base: %x length: %x type: %d\n", i + 1, memory_map[i].base, memory_map[i].length, memory_map[i].type);
+	}
 }

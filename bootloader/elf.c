@@ -77,10 +77,10 @@ void elf_load_program_headers(void* elf) {
 	}
 }
 
-void elf_jump_entry_point(void* elf) {
+void elf_jump_entry_point(void* elf, void* boot_info) {
 	Elf64_Ehdr* ehdr = (Elf64_Ehdr*) elf;
 
-	void (*entry_point)(void) = (void(*)(void)) ehdr->e_entry;
+	void (*entry_point)(void*) = (void(*)(void*)) ehdr->e_entry;
 
-	entry_point();
+	entry_point(boot_info);
 }

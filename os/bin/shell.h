@@ -5,7 +5,7 @@
 #include "vga_text.h"
 #include "string.h"
 
-#define SHELL_COMMANDS_COUNT 5
+#define SHELL_COMMANDS_COUNT 7
 #define SHELL_COMMAND_LENGTH_MAXIMUM 1024
 #define SHELL_COMMAND_DELIMITER ' '
 #define SHELL_ARGC_MAXIMUM 64
@@ -14,13 +14,13 @@
 #define SHELL_COMMAND_HISTORY_COUNT 32
 
 typedef struct {
-        int argc;
-        char argv[SHELL_ARGC_MAXIMUM][SHELL_ARGV_MAXIMUM];
+	int argc;
+	char argv[SHELL_ARGC_MAXIMUM][SHELL_ARGV_MAXIMUM];
 } Shell_Arguments;
 
 typedef struct {
-        char* command;
-        void (*function_pointer)(Shell_Arguments);
+	char* command;
+	void (*function_pointer)(Shell_Arguments);
 } Shell_Command;
 
 void shell_print_prompt(void);
@@ -35,5 +35,7 @@ void shell_command_echo(Shell_Arguments arguments);
 void shell_command_clear(Shell_Arguments arguments);
 void shell_command_reboot(Shell_Arguments arguments);
 void shell_command_color(Shell_Arguments arguments);
+void shell_command_halt(Shell_Arguments arguments);
+void shell_command_meminfo(Shell_Arguments arguments);
 
 #endif

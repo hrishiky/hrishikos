@@ -1,14 +1,15 @@
 # hrishikos
 
 **Information:**
- - an x86 operating system written from scratch with assembly and C
+ - an operating system targeting x86_64 architecture and legacy hardware devices
+ - written with assembly and C, using a Make build system
  - currently contains a basic shell
- - memory management, file system, and process scheduling will be implemented in the future
+ - TODO: memory management, file system, process scheduling
 <br></br>
 
 **Requirements:**
  - QEMU package for emulation
- - GDB for debugging
+ - GDB (not needed if not using debugger)
 
 **Build/Run Instructions:**
  - to clean the build: `make clean`
@@ -19,4 +20,4 @@
 
 **Credits:**
  - bootloader and early build setup from [Operating Systems: From 0 to 1](https://raw.githubusercontent.com/tuhdo/os01/master/Operating_Systems_From_0_to_1.pdf)
-
+ - memory management from [BrokenThorn Entertainment](https://brokenthorn.com/Resources/OSDevIndex.html)
