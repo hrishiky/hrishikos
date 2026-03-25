@@ -2,14 +2,19 @@
 #include "shell.h"
 #include "vga_text.h"
 #include "stdio.h"
+#include "stdint.h"
 #include "string.h"
 #include "asm_wrappers.h"
 #include "pmm.h"
+#include "vmm.h"
+#include "heap.h"
 
 extern unsigned char vga_text_cursor_x;
 extern unsigned char vga_text_cursor_y;
+
 extern Boot_Info* pmm_boot_info;
 extern unsigned int pmm_memory_size;
+extern unsigned char kernel_end;
 
 Shell_Command commands[] = {
 	{ "help", &shell_command_help },
@@ -18,7 +23,7 @@ Shell_Command commands[] = {
 	{ "reboot", &shell_command_reboot },
 	{ "color", &shell_command_color },
 	{ "halt", &shell_command_halt },
-	{ "meminfo", &shell_command_meminfo }
+	{ "pmminfo", &shell_command_pmminfo }
 };
 
 unsigned short shell_command_history_start = 0;
@@ -31,7 +36,7 @@ unsigned char shell_input_start_x;
 unsigned char shell_input_start_y;
 
 void shell_print_prompt(void) {
-	vga_text_print("$ ");
+	printf("$ ");
 
 	shell_input_start_x = vga_text_cursor_x;
 	shell_input_start_y = vga_text_cursor_y;
@@ -42,10 +47,10 @@ void shell_print_spacing(void) {
 		if (vga_text_cursor_y == 0) {
 			return;
 		} else {
-			vga_text_print_character('\n');
+			printf("\n");
 		}
 	} else {
-		vga_text_print("\n\n");
+		printf("\n\n");
 	}
 }
 
@@ -163,9 +168,8 @@ void shell_run_command(Shell_Arguments arguments) {
 		}
 	}
 
-	vga_text_print("invalid command '");
-	vga_text_print(arguments.argv[0]);
-	vga_text_print("'\nuse 'help' to see valid commands");
+	printf("invalid command '%s'\n", arguments.argv[0]);
+	printf("use 'help' to see valid commands");
 }
 
 void shell_main(void) {
@@ -174,30 +178,24 @@ void shell_main(void) {
 
 	while (1) {
 		shell_print_prompt();
-
 		char* input = shell_get_input();
-
 		Shell_Arguments arguments = shell_input_parse(input);
-
 		shell_run_command(arguments);
-
 		shell_print_spacing();
 	}
 }
 
 void shell_command_help(Shell_Arguments arguments) {
-	vga_text_print("currently implemented commands:\n");
+	printf("commands:\n");
 
 	for (unsigned short i = 0; i < SHELL_COMMANDS_COUNT; i++) {
-		vga_text_print(commands[i].command);
-		vga_text_print_character('\n');
+		printf("  %s\n", commands[i].command);
 	}
 }
 
 void shell_command_echo(Shell_Arguments arguments) {
 	for (int i = 1; i < arguments.argc; i++) {
-		vga_text_print(arguments.argv[i]);
-		vga_text_print_character(' ');
+		printf("%s ", arguments.argv[i]);
 	}
 }
 
@@ -219,7 +217,7 @@ void shell_command_reboot(Shell_Arguments arguments) {
 
 void shell_command_color(Shell_Arguments arguments) {
 	if (arguments.argc != 3) {
-		vga_text_print("Usage: color [FOREGROUND_COLOR] [BACKGROUND_COLOR]\n");
+		vga_text_print("usage: color [FOREGROUND_COLOR] [BACKGROUND_COLOR]\n");
 
 		return;
 	}
@@ -236,13 +234,14 @@ void shell_command_halt(Shell_Arguments arguments) {
 	halt();
 }
 
-void shell_command_meminfo(Shell_Arguments arguments) {
+void shell_command_pmminfo(Shell_Arguments arguments) {
 	E820_Entry* memory_map = (E820_Entry*) pmm_boot_info->entries;
 
-	printf("pmm total memory size: %d KB\n\n", pmm_memory_size / 8000);
+	printf("total memory size: %d KiB\n", pmm_memory_size / 8192);
+	printf("pmm bitmap start address: 0x%x \n\n", (unsigned long) &kernel_end);
 	printf("physical memory map:\n");
 
 	for (unsigned char i = 0; i < pmm_boot_info->entry_count; i++) {
-		printf("region %d: base: %x length: %x type: %d\n", i + 1, memory_map[i].base, memory_map[i].length, memory_map[i].type);
+		printf("  region %d: base = 0x%x; length = 0x%x; type = %d\n", i + 1, memory_map[i].base, memory_map[i].length, memory_map[i].type);
 	}
 }

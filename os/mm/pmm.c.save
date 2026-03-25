@@ -1,12 +1,12 @@
 #include "pmm.h"
 #include "string.h"
 #include "vga_text.h"
-#include "stdint.h"
 #include "stdbool.h"
-#include "stdio.h"
+
+bool pmm_init_mode = true;
 
 Boot_Info* pmm_boot_info;
-bool pmm_init_mode = true;
+
 extern unsigned char kernel_end;
 
 unsigned int pmm_memory_size = 0;
@@ -14,26 +14,20 @@ unsigned int pmm_used_blocks = 0;
 unsigned int pmm_max_blocks = 0;
 unsigned int* pmm_memory_map = 0;
 
-void pmm_memory_map_set(unsigned int bit) {
-	unsigned int word = bit / 32;
-	unsigned int mask = 1u << (bit % 32);
-	pmm_memory_map[word] |= mask;
+void pmm_memory_map_set (unsigned int bit) {
+	pmm_memory_map[bit / 32] |= (1 << (bit % 32));
 }
 
-void pmm_memory_map_unset(unsigned int bit) {
-	unsigned int word = bit / 32;
-	unsigned int mask = 1u << (bit % 32);
-	pmm_memory_map[word] &= ~mask;
+void pmm_memory_map_unset (unsigned int bit) {
+	pmm_memory_map[bit / 32] &= ~(1 << (bit % 32));
 }
 
-int pmm_memory_map_test(unsigned int bit) {
-	unsigned int word = bit / 32;
-	unsigned int mask = 1u << (bit % 32);
-	return (pmm_memory_map[word] & mask) ? 1 : 0;
+unsigned char pmm_memory_map_test(unsigned int bit) {
+	return pmm_memory_map[bit / 32] & (1 << (bit % 32));
 }
 
 int pmm_memory_map_find_free_block(void) {
-	for (unsigned int i = 0; i < pmm_max_blocks / 32; i++) {
+	for (unsigned int i = 0; i < pmm_max_blocks; i++) {
 		if (pmm_memory_map[i] == 0xFFFFFFFF) {
 			continue;
 		}
@@ -50,8 +44,8 @@ int pmm_memory_map_find_free_block(void) {
 	return -1;
 }
 
-int pmm_memory_map_find_low_free_block(void) {
-	for (unsigned int i = 0; i < PMM_LOW_BLOCK_COUNT; i++) {
+int pmm_memory_map_find_low_free_block_(void) {
+	for (unsigned int i = 0; i < 2560; i++) {
 		if (pmm_memory_map[i] == 0xFFFFFFFF) {
 			continue;
 		}
@@ -113,8 +107,6 @@ int pmm_memory_map_find_free_region(unsigned int page_count) {
 }
 
 void pmm_init(void* boot_info_pointer) {
-	printf("pmm init start\n");
-
 	pmm_boot_info = (Boot_Info*) boot_info_pointer;
 	E820_Entry* memory_map = (E820_Entry*) pmm_boot_info->entries;
 
@@ -141,12 +133,9 @@ void pmm_init(void* boot_info_pointer) {
 
 	pmm_memory_map_set(0);
 
-	for (int i = 0; i < 2560; i++) {
+	for (unsigned int i = 0; i < 2560; i++) {
 		pmm_memory_map_set(i);
-		pmm_used_blocks++;
 	}
-
-	printf("pmm init done\n\n");
 }
 
 void pmm_init_region(unsigned long base, unsigned int size) {
@@ -171,18 +160,12 @@ void pmm_deinit_region(unsigned long base, unsigned int size) {
 	}
 }
 
-void* pmm_alloc_block(void) {
-	int frame = 0;
-
+void* pmm_alloc_block() {
 	if (pmm_max_blocks - pmm_used_blocks <= 0) {
 		return 0;
 	}
 
-	if (pmm_init_mode) {
-		frame = pmm_memory_map_find_low_free_block();
-	} else {
-		frame = pmm_memory_map_find_free_block();
-	}
+	int frame = pmm_memory_map_find_free_block();
 
 	if (frame == -1) {
 		return 0;

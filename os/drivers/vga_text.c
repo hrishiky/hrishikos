@@ -8,7 +8,7 @@ char* vga = (char*)0xB8000;
 long vga_text_cursor_x = 0;
 long vga_text_cursor_y = 0;
 
-unsigned char vga_text_foreground_color = VGA_TEXT_COLOR_WHITE;
+unsigned char vga_text_foreground_color = VGA_TEXT_COLOR_LIGHT_GRAY;
 unsigned char vga_text_background_color = VGA_TEXT_COLOR_BLACK;
 
 void vga_text_blinking_cursor_enable(unsigned char start, unsigned char end) {
@@ -204,7 +204,6 @@ void vga_text_print_hex(long number) {
 
 	itoa(number, number_string, 16);
 
-	vga_text_print("0x");
 	vga_text_print(number_string);
 }
 

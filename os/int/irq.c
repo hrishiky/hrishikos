@@ -1,5 +1,5 @@
 #include "interrupt_frame.h"
-#include "vga_text.h"
+#include "stdio.h"
 #include "keyboard.h"
 #include "asm_wrappers.h"
 #include "irq.h"
@@ -18,13 +18,8 @@ void int_irq_central_handler(Int_Regs* regs, unsigned long vector, unsigned long
 			break;
 
 		default:
-			vga_text_print("unhandled irq interrupt.\n");
-			vga_text_print("IRQ INTERRUPT ENCOUNTERED: ");
-		        vga_text_print_hex((long)&vector);
-		        vga_text_print("\nERROR: ");
-		        vga_text_print_hex((long)&error);
-		        vga_text_print("\n");
-
+			printf("IRQ INTERRUPT: 0x%x\n", vector);
+		        printf("ERROR: 0x%x\n", error);
 			outb(0x20, 0x20);
 			break;
 	}

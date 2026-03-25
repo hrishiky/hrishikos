@@ -1,5 +1,6 @@
 #include "idt.h"
-#include "vga_text.h"
+
+#include "stdio.h"
 
 __attribute__((aligned(0x10)))
 Idt_Entry idt[IDT_ENTRY_COUNT];
@@ -108,6 +109,8 @@ void idt_irq_setup(void) {
 }
 
 void idt_init(void){
+	printf("idt init start\n");
+
 	idt_idt_zero_fill();
 	idt_idtr_zero_fill();
 
@@ -118,5 +121,5 @@ void idt_init(void){
 
 	idt_load_idtr();
 
-	vga_text_print(IDT_LOAD_SUCCESS_MESSAGE);
+	printf("idt init done\n\n");
 }

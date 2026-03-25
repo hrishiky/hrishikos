@@ -36,6 +36,6 @@ void shell_command_clear(Shell_Arguments arguments);
 void shell_command_reboot(Shell_Arguments arguments);
 void shell_command_color(Shell_Arguments arguments);
 void shell_command_halt(Shell_Arguments arguments);
-void shell_command_meminfo(Shell_Arguments arguments);
+void shell_command_pmminfo(Shell_Arguments arguments);
 
 #endif
