@@ -244,4 +244,14 @@ void shell_command_pmminfo(Shell_Arguments arguments) {
 	for (unsigned char i = 0; i < pmm_boot_info->entry_count; i++) {
 		printf("  region %d: base = 0x%x; length = 0x%x; type = %d\n", i + 1, memory_map[i].base, memory_map[i].length, memory_map[i].type);
 	}
+
+	void* ptr = heap_alloc(4096);
+
+	char* c_ptr = (char*) ptr;
+	c_ptr[0] = 'H';
+	c_ptr[1] = 'i';
+	c_ptr[2] = '!';
+	c_ptr[3] = '\0';
+
+	printf((char*) ptr);
 }

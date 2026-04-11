@@ -21,8 +21,12 @@ typedef struct {
 
 void heap_init(void);
 uint8_t heap_size_to_order(uint64_t size);
-bool heap_split_block(uint8_t free_block_order, uint8_t target_order);
+uint64_t heap_order_to_size(uint8_t order);
+void heap_add_block(uint8_t order, void* block_start);
+void heap_del_block(uint8_t order, void* block_start);
+void heap_split_block(uint8_t block_order, uint8_t target_order, void* block);
 void* heap_alloc_block(uint8_t order);
 void* heap_alloc(uint64_t size);
+void heap_free(void* block);
 
 #endif
