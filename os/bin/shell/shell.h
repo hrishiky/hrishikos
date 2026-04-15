@@ -5,7 +5,7 @@
 #include "vga_text.h"
 #include "string.h"
 
-#define SHELL_COMMANDS_COUNT 7
+#define SHELL_COMMANDS_COUNT 10
 #define SHELL_COMMAND_LENGTH_MAXIMUM 1024
 #define SHELL_COMMAND_DELIMITER ' '
 #define SHELL_ARGC_MAXIMUM 64
@@ -29,13 +29,5 @@ char* shell_get_input(void);
 Shell_Arguments shell_input_parse(char* input);
 void shell_run_command(Shell_Arguments arguments);
 void shell_main(void);
-
-void shell_command_help(Shell_Arguments arguments);
-void shell_command_echo(Shell_Arguments arguments);
-void shell_command_clear(Shell_Arguments arguments);
-void shell_command_reboot(Shell_Arguments arguments);
-void shell_command_color(Shell_Arguments arguments);
-void shell_command_halt(Shell_Arguments arguments);
-void shell_command_pmminfo(Shell_Arguments arguments);
 
 #endif

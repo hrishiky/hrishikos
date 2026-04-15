@@ -7,6 +7,10 @@
 #define ENTRY_COUNT 512
 #define VMM_PHYSMAP_OFFSET 0xFFFF800000000000
 
+#define VMM_IDENTITYMAP_START 0x0
+#define VMM_IDENTITYMAP_END 0x1000000
+#define VMM_PHYSMAP_START 0x1000000
+
 typedef struct {
 	uint64_t entries[ENTRY_COUNT];
 }__attribute__((packed)) page_table_t;

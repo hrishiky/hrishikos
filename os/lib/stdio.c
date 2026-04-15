@@ -21,17 +21,22 @@ void printf(char* fstring, ...) {
 
 			case 'd':
 			case 'i':
-				long signed_integer = va_arg(args, long);
-				vga_text_print_integer(signed_integer);
+				long long signed_integer = va_arg(args, long long);
+				vga_text_print_integer( signed_integer);
 				break;
 
 			case 'u':
-				unsigned long unsigned_integer = va_arg(args, unsigned long);
-				// handle
+				unsigned long long unsigned_integer = va_arg(args, unsigned long long);
+				vga_text_print_unsigned_integer(unsigned_integer);
+				break;
+
+			case 'p':
+				void* pointer = va_arg(args, void*);
+				vga_text_print_hex((unsigned long long) pointer);
 				break;
 
 			case 'x':
-				long hex_integer = va_arg(args, long);
+				unsigned long long hex_integer = va_arg(args, unsigned long long);
 				vga_text_print_hex(hex_integer);
 				break;
 

@@ -9,6 +9,8 @@
 #define VGA_TEXT_COLUMNS_MINIMUM 0
 #define VGA_TEXT_COLUMNS_MAXIMUM 79
 
+#define VGA_TEXT_TAB_LENGTH 4
+
 #define VGA_TEXT_COLOR_BLACK 0x0
 #define VGA_TEXT_COLOR_BLUE 0x1
 #define VGA_TEXT_COLOR_GREEN 0x2
@@ -49,8 +51,9 @@ void vga_text_print_position(char* string, unsigned char x, unsigned char y);
 void vga_text_print(char* string);
 void vga_text_print_color(char* string, unsigned char foreground_color, unsigned char background_color);
 
-void vga_text_print_integer(long number);
-void vga_text_print_hex(long number);
+void vga_text_print_integer(long long number);
+void vga_text_print_unsigned_integer(unsigned long long number);
+void vga_text_print_hex(unsigned long long number);
 
 void vga_text_change_colors(unsigned char foreground_color, unsigned char background_color);
 void vga_text_refresh_colors(void);

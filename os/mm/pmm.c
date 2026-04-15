@@ -5,7 +5,7 @@
 #include "stdbool.h"
 #include "stdio.h"
 
-Boot_Info* pmm_boot_info;
+Boot_Info* boot_info;
 bool pmm_init_mode = true;
 extern unsigned char kernel_end;
 
@@ -115,12 +115,12 @@ int pmm_memory_map_find_free_region(unsigned int page_count) {
 void pmm_init(void* boot_info_pointer) {
 	printf("pmm init start\n");
 
-	pmm_boot_info = (Boot_Info*) boot_info_pointer;
-	E820_Entry* memory_map = (E820_Entry*) pmm_boot_info->entries;
+	boot_info = (Boot_Info*) boot_info_pointer;
+	E820_Entry* memory_map = (E820_Entry*) boot_info->entries;
 
 	unsigned long memory_size = 0;
 
-	for (unsigned int i = 0; i < pmm_boot_info->entry_count; i++) {
+	for (unsigned int i = 0; i < boot_info->entry_count; i++) {
 		if (memory_map[i].type == 1) {
 			memory_size += memory_map[i].length;
 		}
@@ -133,7 +133,7 @@ void pmm_init(void* boot_info_pointer) {
 
 	memset(pmm_memory_map, 0xF, (pmm_max_blocks / PMM_BLOCKS_PER_BYTE));
 
-	for (unsigned int i = 0; i < pmm_boot_info->entry_count; i++) {
+	for (unsigned int i = 0; i < boot_info->entry_count; i++) {
 		if (memory_map[i].type == 1) {
 			pmm_init_region(memory_map[i].base, memory_map[i].length);
 		}

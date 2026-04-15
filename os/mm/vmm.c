@@ -342,23 +342,29 @@ void vmm_init(void) {
 	void* new_pml4_physical = pmm_alloc_block();
 
 	if (!new_pml4_physical) {
-		printf("could not allocate PML4, halting\n");
+		printf("could not physically allocate PML4, halting\n");
 		__asm__ volatile ("hlt");
 	}
 
 	page_table_t* new_pml4 = (page_table_t*) vmm_physical_to_virtual((uint64_t) new_pml4_physical);
 	memset(new_pml4, 0, sizeof(page_table_t));
 
-	for (uint64_t physical_address = 0x0; physical_address < 0x1000000; physical_address += 0x1000) {
+	printf("identity mapping address range 0x%x -> 0x%x\n", VMM_IDENTITYMAP_START, VMM_IDENTITYMAP_END);
+
+	for (uint64_t physical_address = VMM_IDENTITYMAP_START; physical_address < VMM_IDENTITYMAP_END; physical_address += PMM_BLOCK_SIZE) {
 		vmm_map_page((void*) physical_address, (void*) physical_address, new_pml4);
 	}
 
-	for (uint64_t physical_address = 0x1000000; physical_address < pmm_memory_size; physical_address += 0x1000) {
-		uint64_t virt = physical_address + VMM_PHYSMAP_OFFSET - 0x1000000;
-		vmm_map_page((void*)physical_address, (void*)virt, new_pml4);
+	printf("mapping physmap address range 0x%x -> 0x%x to 0x%x -> 0x%x\n", VMM_PHYSMAP_START, pmm_memory_size, VMM_PHYSMAP_START + VMM_PHYSMAP_OFFSET, pmm_memory_size + VMM_PHYSMAP_OFFSET);
+
+	for (uint64_t physical_address = VMM_PHYSMAP_START; physical_address < pmm_memory_size; physical_address += PMM_BLOCK_SIZE) {
+		uint64_t virt = physical_address + VMM_PHYSMAP_OFFSET - VMM_PHYSMAP_START;
+		vmm_map_page((void*) physical_address, (void*) virt, new_pml4);
 	}
 
 	vmm_set_cr3((uint64_t) new_pml4_physical);
+
+	printf("new pml4 set\n");
 
 	pmm_init_mode = false;
 	vmm_init_mode = false;

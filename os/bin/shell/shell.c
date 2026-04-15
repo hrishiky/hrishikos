@@ -1,20 +1,13 @@
-#include "keyboard.h"
 #include "shell.h"
+#include "keyboard.h"
 #include "vga_text.h"
 #include "stdio.h"
 #include "stdint.h"
 #include "string.h"
-#include "asm_wrappers.h"
-#include "pmm.h"
-#include "vmm.h"
-#include "heap.h"
+#include "commands.h"
 
 extern unsigned char vga_text_cursor_x;
 extern unsigned char vga_text_cursor_y;
-
-extern Boot_Info* pmm_boot_info;
-extern unsigned int pmm_memory_size;
-extern unsigned char kernel_end;
 
 Shell_Command commands[] = {
 	{ "help", &shell_command_help },
@@ -23,7 +16,10 @@ Shell_Command commands[] = {
 	{ "reboot", &shell_command_reboot },
 	{ "color", &shell_command_color },
 	{ "halt", &shell_command_halt },
-	{ "pmminfo", &shell_command_pmminfo }
+	{ "pmminfo", &shell_command_pmminfo },
+	{ "heapinfo", &shell_command_heapinfo },
+	{ "vgatest", &shell_command_vgatest },
+	{ "meminfo", &shell_command_meminfo }
 };
 
 unsigned short shell_command_history_start = 0;
@@ -183,75 +179,4 @@ void shell_main(void) {
 		shell_run_command(arguments);
 		shell_print_spacing();
 	}
-}
-
-void shell_command_help(Shell_Arguments arguments) {
-	printf("commands:\n");
-
-	for (unsigned short i = 0; i < SHELL_COMMANDS_COUNT; i++) {
-		printf("  %s\n", commands[i].command);
-	}
-}
-
-void shell_command_echo(Shell_Arguments arguments) {
-	for (int i = 1; i < arguments.argc; i++) {
-		printf("%s ", arguments.argv[i]);
-	}
-}
-
-void shell_command_clear(Shell_Arguments arguments) {
-	vga_text_clear_screen();
-	vga_text_cursor_shift(0, 0);
-}
-
-void shell_command_reboot(Shell_Arguments arguments) {
-	__asm__ volatile (
-		"lidt (0)"
-		:
-		:
-		: "memory"
-	);
-
-	__asm__ volatile ("int $3");
-}
-
-void shell_command_color(Shell_Arguments arguments) {
-	if (arguments.argc != 3) {
-		vga_text_print("usage: color [FOREGROUND_COLOR] [BACKGROUND_COLOR]\n");
-
-		return;
-	}
-
-	vga_text_change_colors(strtol(arguments.argv[1], 0), strtol(arguments.argv[2], 0));
-	vga_text_refresh_colors();
-}
-
-void shell_command_halt(Shell_Arguments arguments) {
-	while (inb(0x64) & 1) {
-		inb(0x60);
-	}
-
-	halt();
-}
-
-void shell_command_pmminfo(Shell_Arguments arguments) {
-	E820_Entry* memory_map = (E820_Entry*) pmm_boot_info->entries;
-
-	printf("total memory size: %d KiB\n", pmm_memory_size / 8192);
-	printf("pmm bitmap start address: 0x%x \n\n", (unsigned long) &kernel_end);
-	printf("physical memory map:\n");
-
-	for (unsigned char i = 0; i < pmm_boot_info->entry_count; i++) {
-		printf("  region %d: base = 0x%x; length = 0x%x; type = %d\n", i + 1, memory_map[i].base, memory_map[i].length, memory_map[i].type);
-	}
-
-	void* ptr = heap_alloc(4096);
-
-	char* c_ptr = (char*) ptr;
-	c_ptr[0] = 'H';
-	c_ptr[1] = 'i';
-	c_ptr[2] = '!';
-	c_ptr[3] = '\0';
-
-	printf((char*) ptr);
 }

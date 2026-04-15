@@ -4,7 +4,7 @@
  - an operating system targeting x86_64 architecture and legacy hardware devices
  - written with assembly and C, using a Make build system
  - currently contains a basic shell
- - TODO: memory management, file system, process scheduling
+ - TODO: file system, process scheduling
 <br></br>
 
 **Requirements:**
@@ -20,4 +20,4 @@
 
 **Credits:**
  - bootloader and early build setup from [Operating Systems: From 0 to 1](https://raw.githubusercontent.com/tuhdo/os01/master/Operating_Systems_From_0_to_1.pdf)
- - memory management from [BrokenThorn Entertainment](https://brokenthorn.com/Resources/OSDevIndex.html)
+ - physical memory management from [BrokenThorn Entertainment](https://brokenthorn.com/Resources/OSDevIndex.html)

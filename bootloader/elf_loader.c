@@ -2,6 +2,7 @@
 #include "elf.h"
 
 #define BOOT_INFO_ADDRESS 0x0000000000002000ULL
+#define KERNEL_COUNT 216
 
 typedef struct __attribute__((packed)) {
 	unsigned long base;
@@ -20,7 +21,7 @@ void main(void) {
 	Boot_Info *boot_info = (Boot_Info*) BOOT_INFO_ADDRESS;
 
 	unsigned int lba = 0x00000043;
-	unsigned char count = 158;
+	unsigned char count = KERNEL_COUNT;
 	unsigned short* buffer = (unsigned short*)0x200000;
 
 	ata_prepare_read(lba, count);

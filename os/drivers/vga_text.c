@@ -95,6 +95,7 @@ void vga_text_clear_screen(void) {
 void vga_text_clear_segment(unsigned short start, unsigned short end) {
 	for (unsigned short i = start; i < end; i += 2) {
 		vga[i] = ' ';
+		vga[i + 1] = (vga_text_background_color << 4) | (vga_text_foreground_color & 0x0F);
 	}
 }
 
@@ -105,6 +106,19 @@ void vga_text_print_character(char character) {
 		case '\n':
 			vga_text_cursor_y++;
 			vga_text_cursor_shift(0, vga_text_cursor_y);
+
+			return;
+
+		case '\t':
+			unsigned char spaces = vga_text_cursor_x % VGA_TEXT_TAB_LENGTH;
+
+			if (vga_text_cursor_x + (4 - spaces) > VGA_TEXT_COLUMNS_MAXIMUM) {
+				vga_text_print_character('\n');
+			} else {
+				for (unsigned char i = 0; i < 4 - spaces; i++) {
+					vga_text_print_character(' ');
+				}
+			}
 
 			return;
 
@@ -191,18 +205,26 @@ void vga_text_print_color(char* string, unsigned char foreground_color, unsigned
 	}
 }
 
-void vga_text_print_integer(long number) {
+void vga_text_print_integer(long long number) {
 	char number_string[255];
 
-	itoa(number, number_string, 10);
+	itoa_ll(number, number_string, 10);
 
 	vga_text_print(number_string);
 }
 
-void vga_text_print_hex(long number) {
+void vga_text_print_unsigned_integer(unsigned long long number) {
 	char number_string[255];
 
-	itoa(number, number_string, 16);
+	itoa_ull(number, number_string, 10);
+
+	vga_text_print(number_string);
+}
+
+void vga_text_print_hex(unsigned long long number) {
+	char number_string[255];
+
+	itoa_ull(number, number_string, 16);
 
 	vga_text_print(number_string);
 }

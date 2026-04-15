@@ -1,8 +1,14 @@
 #ifndef STDLIB_H
 #define STDLIB_H
 
-#include "heap.h"
+#include "stdint.h"
 
-char* itoa(long number, char* buffer, unsigned char base);
+#define NULL (void*) 0
+
+void* malloc(uint64_t size);
+void free(void* ptr);
+
+char* itoa_ll(long long number, char* buffer, unsigned char base);
+char* itoa_ull(unsigned long long number, char* buffer, unsigned char base);
 
 #endif

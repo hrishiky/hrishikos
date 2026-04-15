@@ -2,6 +2,7 @@
 
 #include "pmm.h"
 #include "vmm.h"
+#include "stdlib.h"
 #include "stdint.h"
 #include "stdio.h"
 
@@ -16,20 +17,18 @@ void heap_init(void) {
 	printf("allocating heap size: %d KiB\n", heap_remaining / 8192);
 
 	for (uint8_t order = HEAP_MAX_ORDER; order >= 0; order--) {
-		if (heap_remaining == 0) {
+		if (heap_remaining == 0 || heap_remaining < HEAP_BASE_BLOCK_SIZE) {
 			break;
 		}
 
 		uint64_t block_size = 1ULL << (order + HEAP_BASE_BLOCK_ORDER);
 
-		while (heap_remaining >= block_size &&
-		       (block_start % block_size) == 0) {
-
+		while (heap_remaining >= block_size && (block_start % block_size) == 0) {
 			heap_add_block(order, (void*) block_start);
-
 			block_start += block_size;
 			heap_remaining -= block_size;
-			printf("block size assigned: %d KiB; heap remaining: %d KiB\n", block_size / 8192, heap_remaining / 8192);
+
+			printf("block assiged at address: %p; block size assigned: %d KiB (order %d); heap remaining: %d KiB\n", (void*) block_start, block_size / 8192, order, heap_remaining / 8192);
 		}
 	}
 
@@ -42,7 +41,7 @@ uint8_t heap_size_to_order(uint64_t size) {
 	uint64_t block_size = HEAP_BASE_BLOCK_SIZE;
 
 	while (block_size <= size &&
-	       order < HEAP_MAX_ORDER) {
+	       order <= HEAP_MAX_ORDER) {
 		order++;
 		block_size <<= 1;
 	}
@@ -62,8 +61,6 @@ void heap_add_block(uint8_t order, void* block_start) {
 	heap_free_block_t* block = (heap_free_block_t*) block_start;
 	block->next = (uint64_t*) heap_free_list[order];
 	heap_free_list[order] = block;
-
-	printf("added block order %d\n", order);
 }
 
 void heap_del_block(uint8_t order, void* block_start) {
@@ -73,39 +70,38 @@ void heap_del_block(uint8_t order, void* block_start) {
 
 	heap_free_block_t* block = (heap_free_block_t*) block_start;
 	heap_free_block_t* current_block = heap_free_list[order];
+	heap_free_block_t* previous_block;
 	uint8_t list_index = 0;
 
-	while (current_block->next != 0) {
+	while (current_block != NULL) {
 		if (block != current_block) {
+			previous_block = current_block;
 			current_block = (heap_free_block_t*) current_block->next;
 			list_index++;
+
+			continue;
 		}
 
 		if (list_index == 0) {
-			heap_free_list[0] = (heap_free_block_t*) block->next;
+			heap_free_list[order] = (heap_free_block_t*) block->next;
 		} else if (block->next == 0) {
-			heap_free_list[list_index - 1]->next = 0;
+			previous_block->next = 0;
 		} else {
-			heap_free_list[list_index - 1]->next = (uint64_t*) heap_free_list[list_index + 1];
+			previous_block->next = (uint64_t*) current_block->next;
 		}
-
-		printf("deleting block order %d\n", order);
 
 		return;
 	}
 
-	printf("deleting block fail\n");
-
-	return;
+	return; // error
 }
 
 void heap_split_block(uint8_t block_order, uint8_t target_order, void* block) {
-	printf("splitting blocks from %d to %d\n", block_order, target_order);
-
 	while (block_order > target_order) {
 		heap_del_block(block_order, block);
 		block_order--;
 		heap_add_block(block_order, block);
+		heap_add_block(block_order, (void*) ((uint8_t*) block + heap_order_to_size(block_order)));
 	}
 }
 
@@ -114,60 +110,78 @@ void* heap_alloc_block(uint8_t order) {
 		return false;
 	}
 
-	heap_free_block_t* block = heap_free_list[order];
-	heap_del_block(order, (void*) block);
+	void* block = (void*) heap_free_list[order];
+	heap_del_block(order, block);
 
-	for (void* virtual_address = (void*) block; virtual_address < (void*) block + ((1ULL << (order + HEAP_BASE_BLOCK_ORDER) + PMM_BLOCK_SIZE) / PMM_BLOCK_SIZE); virtual_address += PMM_BLOCK_SIZE) {
-		vmm_map_page(pmm_alloc_block(), virtual_address, (page_table_t*) vmm_get_cr3());
+	page_table_t* cr3 = (page_table_t*) vmm_get_cr3();
+
+	for (uint64_t i = 0; i < heap_order_to_size(order) / PMM_BLOCK_SIZE; i++) {
+		vmm_map_page(pmm_alloc_block(), (void*) ((uint8_t*) block + i * PMM_BLOCK_SIZE), cr3);
 	}
 
 	heap_header_t* header = (heap_header_t*) block;
 	header->order = order;
 
-	return (void*) block + sizeof(heap_header_t);
+	return (void*) ((uint8_t*) block + sizeof(heap_header_t));
 }
 
 void* heap_alloc(uint64_t size) {
+	if (size == 0 || size > heap_order_to_size(HEAP_MAX_ORDER)) {
+		return NULL;
+	}
+
 	uint8_t original_order = heap_size_to_order(size);
 	uint8_t free_block_order = original_order;
 
-	printf("allocating block order %d\n", original_order);
-
-	for (; free_block_order < HEAP_MAX_ORDER + 1 - free_block_order; free_block_order++) {
-		if (heap_free_list[free_block_order]) {
+	while (free_block_order <= HEAP_MAX_ORDER) {
+		if (heap_free_list[free_block_order] != 0) {
 			break;
 		}
+
+		free_block_order++;
 	}
 
-	printf("found block order %d\n", free_block_order);
+	if (!heap_free_list[free_block_order]) {
+		return NULL;
+	}
 
-	heap_split_block(free_block_order, original_order, heap_free_list[free_block_order]);
-	void* ptr = heap_alloc_block(original_order);
+	if (free_block_order != original_order) {
+		heap_split_block(free_block_order, original_order, heap_free_list[free_block_order]);
+	}
 
-	return ptr;
+	return heap_alloc_block(original_order);
 }
 
 void heap_free(void* block) {
-	uint8_t block_order = ((uint8_t*) block - sizeof(uint8_t))[0];
-
-	//
-
-	for (uint8_t order = block_order; order < HEAP_MAX_ORDER + 1; order++) {
-		if (!heap_free_list[order]->next) {
-			continue;
-		}
-
-		//
+	if (block == NULL) {
+		return;
 	}
 
-	/* MERGING
-	while (heap_free_list[order]) {
-		if (heap_free_list[order] != block_start ^ heap_order_to_size(order)) {
+	uint8_t block_order = ((uint8_t*) (block - sizeof(heap_header_t)))[0];
+
+	heap_add_block(block_order, (void*) ((uint8_t*) block - sizeof(heap_header_t)));
+
+	for (uint8_t order = block_order; order <= HEAP_MAX_ORDER; order++) {
+		heap_free_block_t* current_block = heap_free_list[order];
+		bool merged = false;
+
+		while (current_block != NULL) {
+			if ((uint64_t) current_block != ((uint64_t) block ^ heap_order_to_size(order))) {
+				current_block = (heap_free_block_t*) current_block->next;
+				continue;
+			}
+
+			heap_del_block(order, block);
+			heap_del_block(order, (void*) ((uint8_t*) block + heap_order_to_size(order)));
+			heap_add_block(order + 1, block);
+			merged = true;
+
 			break;
 		}
 
-		heap_free_list[];
-		order++;
+		if (!merged) {
+			break;
+		}
 	}
-	*/
 }
+

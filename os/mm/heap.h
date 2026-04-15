@@ -2,13 +2,13 @@
 #define HEAP_H
 
 #include "stdint.h"
-#include "stdbool.h"
+#include "pmm.h"
 
 #define HEAP_SIZE 0x1000000
-#define HEAP_START 0xFFFF800000400000
+#define HEAP_START 0xFFFF800001000000
 #define HEAP_END (HEAP_START + HEAP_SIZE)
 #define HEAP_MAX_ORDER 12
-#define HEAP_BASE_BLOCK_SIZE 4096
+#define HEAP_BASE_BLOCK_SIZE PMM_BLOCK_SIZE
 #define HEAP_BASE_BLOCK_ORDER 12
 
 typedef struct {
