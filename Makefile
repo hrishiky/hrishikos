@@ -28,7 +28,6 @@ bootdisk: bootloader os
 	dd conv=notrunc if=$(MODE) of=$(DISK_IMG) bs=512 count=$(MODE_SECTORS) seek=1
 	dd conv=notrunc if=$(LOADER) of=$(DISK_IMG) bs=512 count=$(LOADER_SECTORS) seek=$$(($(MODE_SECTORS) + 1))
 	dd conv=notrunc if=$(OS) of=$(DISK_IMG) bs=512 count=$(OS_SECTORS) seek=$$(($(MODE_SECTORS) + $(LOADER_SECTORS) + 1))
-
 qemu:
 	qemu-system-x86_64 -d in_asm,cpu_reset,int,guest_errors -no-reboot -machine pc -drive file=$(DISK_IMG),format=raw,if=ide -boot c -gdb tcp::26000 -S
 

@@ -1,8 +1,6 @@
 #ifndef IDT_H
 #define IDT_H
 
-#include "vga_text.h"
-
 #define IDT_ENTRY_COUNT 256
 #define IDT_ENTRY_SIZE 16
 #define IDT_SIZE 4096
@@ -13,25 +11,23 @@
 
 #define KERNEL_CS 0x08
 
-#define IDT_LOAD_SUCCESS_MESSAGE "IDT loaded.\n"
-
 #define INT_CPU_LIST \
-	X(0)  X(1)  X(2)  X(3)  X(4)  X(5)  X(6)  X(7) \
+	X(0)  X(1)  X(2)  X(3)  X(4)  X(5)  X(6)  X(7)  \
 	X(8)  X(9)  X(10) X(11) X(12) X(13) X(14) X(15) \
 	X(16) X(17) X(18) X(19) X(20) X(21) X(22) X(23) \
 	X(24) X(25) X(26) X(27) X(28) X(29) X(30) X(31)
 
 #define INT_IRQ_LIST \
-	X(0)  X(1)  X(2)  X(3)  X(4)  X(5)  X(6)  X(7) \
+	X(0)  X(1)  X(2)  X(3)  X(4)  X(5)  X(6)  X(7)  \
 	X(8)  X(9)  X(10) X(11) X(12) X(13) X(14) X(15)
 
 #define INT_REMAINING_LIST \
-	X(48)  X(49)  X(50)  X(51)  X(52)  X(53)  X(54)  X(55) \
-	X(56)  X(57)  X(58)  X(59)  X(60)  X(61)  X(62)  X(63) \
-	X(64)  X(65)  X(66)  X(67)  X(68)  X(69)  X(70)  X(71) \
-	X(72)  X(73)  X(74)  X(75)  X(76)  X(77)  X(78)  X(79) \
-	X(80)  X(81)  X(82)  X(83)  X(84)  X(85)  X(86)  X(87) \
-	X(88)  X(89)  X(90)  X(91)  X(92)  X(93)  X(94)  X(95) \
+	X(48)  X(49)  X(50)  X(51)  X(52)  X(53)  X(54)  X(55)  \
+	X(56)  X(57)  X(58)  X(59)  X(60)  X(61)  X(62)  X(63)  \
+	X(64)  X(65)  X(66)  X(67)  X(68)  X(69)  X(70)  X(71)  \
+	X(72)  X(73)  X(74)  X(75)  X(76)  X(77)  X(78)  X(79)  \
+	X(80)  X(81)  X(82)  X(83)  X(84)  X(85)  X(86)  X(87)  \
+	X(88)  X(89)  X(90)  X(91)  X(92)  X(93)  X(94)  X(95)  \
 	X(96)  X(97)  X(98)  X(99)  X(100) X(101) X(102) X(103) \
 	X(104) X(105) X(106) X(107) X(108) X(109) X(110) X(111) \
 	X(112) X(113) X(114) X(115) X(116) X(117) X(118) X(119) \
@@ -65,7 +61,7 @@ INT_IRQ_LIST
 INT_REMAINING_LIST
 #undef X
 
-typedef struct __attribute__((packed)) {
+typedef struct {
 	unsigned short isr_low;
 	unsigned short kernel_cs;
 	unsigned char ist;
@@ -73,12 +69,12 @@ typedef struct __attribute__((packed)) {
 	unsigned short isr_mid;
 	unsigned int isr_high;
 	unsigned int reserved;
-} Idt_Entry;
+} __attribute__((packed)) Idt_Entry;
 
-typedef struct __attribute__((packed)) {
+typedef struct {
 	unsigned short limit;
 	unsigned long base;
-} Idtr;
+} __attribute__((packed)) Idtr;
 
 void idt_idt_zero_fill(void);
 void idt_idtr_zero_fill(void);

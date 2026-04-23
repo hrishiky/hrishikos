@@ -2,7 +2,7 @@
 #include "elf.h"
 
 #define BOOT_INFO_ADDRESS 0x0000000000002000ULL
-#define KERNEL_COUNT 216
+#define KERNEL_COUNT 247
 
 typedef struct __attribute__((packed)) {
 	unsigned long base;

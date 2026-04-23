@@ -2,11 +2,11 @@
 #include "interrupt_frame.h"
 #include "exception.h"
 #include "irq.h"
-#include "vga_text.h"
+#include "stdio.h"
 
 void int_central_handler(Int_Regs* regs) {
-	unsigned long vector = *(unsigned long*)((unsigned char*)regs + ISR_VECTOR_NUMBER_OFFSET);
-	unsigned long error = *(unsigned long*)((unsigned char*)regs + ISR_ERROR_CODE_OFFSET);
+	unsigned long vector = *(unsigned long*) ((unsigned char*) regs + ISR_VECTOR_NUMBER_OFFSET);
+	unsigned long error = *(unsigned long*) ((unsigned char*) regs + ISR_ERROR_CODE_OFFSET);
 
 	if (vector < 32) {
 		int_exception_central_handler(regs, vector, error);
@@ -15,7 +15,7 @@ void int_central_handler(Int_Regs* regs) {
 		int_irq_central_handler(regs, vector, error);
 		return;
 	} else {
-		vga_text_print("unhandled interrupt.");
+		printf("unhandled interrupt\n");
 		return;
 	}
 }

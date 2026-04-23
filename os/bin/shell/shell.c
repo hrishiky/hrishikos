@@ -19,7 +19,8 @@ Shell_Command commands[] = {
 	{ "pmminfo", &shell_command_pmminfo },
 	{ "heapinfo", &shell_command_heapinfo },
 	{ "vgatest", &shell_command_vgatest },
-	{ "meminfo", &shell_command_meminfo }
+	{ "meminfo", &shell_command_meminfo },
+	{ "ded", &shell_command_ded }
 };
 
 unsigned short shell_command_history_start = 0;

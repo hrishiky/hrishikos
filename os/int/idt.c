@@ -1,31 +1,11 @@
 #include "idt.h"
 
+#include "asm_wrappers.h"
 #include "stdio.h"
 
 __attribute__((aligned(0x10)))
 Idt_Entry idt[IDT_ENTRY_COUNT];
 Idtr idtr;
-
-void idt_outb(unsigned char data, unsigned short port) {
-        __asm__ volatile (
-                "outb %0, %1"
-                :
-                : "a"(data), "d"(port)
-        );
-}
-
-unsigned char idt_inb(unsigned short port) {
-        unsigned char data;
-
-        __asm__ volatile (
-                "inb %1, %0"
-                : "=a"(data)
-                : "d"(port)
-        );
-
-        return data;
-
-}
 
 void idt_idt_zero_fill(void) {
 	for (unsigned short i = 0; i < IDT_ENTRY_COUNT; i++) {
@@ -86,26 +66,30 @@ void idt_load_idtr(void) {
 }
 
 void idt_irq_setup(void) {
-        unsigned char a1 = idt_inb(0x21);
-        unsigned char a2 = idt_inb(0xA1);
+	// fix this stuff
 
-	idt_outb(0x11, 0x20);
-	idt_outb(0x11, 0xA0);
+        unsigned char a1 = inb(0x21);
+        unsigned char a2 = inb(0xA1);
 
-	idt_outb(0x20, 0x21);
-	idt_outb(0x28, 0xA1);
+	outb(0x11, 0x20);
+	outb(0x11, 0xA0);
 
-	idt_outb(0x04, 0x21);
-	idt_outb(0x02, 0xA1);
+	outb(0x20, 0x21);
+	outb(0x28, 0xA1);
 
-	idt_outb(0x01, 0x21);
-	idt_outb(0x01, 0xA1);
+	outb(0x04, 0x21);
+	outb(0x02, 0xA1);
 
-	idt_outb(a1, 0x21);
-	idt_outb(a2, 0xA1);
+	outb(0x01, 0x21);
+	outb(0x01, 0xA1);
 
-	idt_outb(0xFD, 0x21);
-	idt_outb(0xFF, 0xA1);
+	outb(a1, 0x21);
+	outb(a2, 0xA1);
+
+	outb(0xFD, 0x21);
+	outb(0xBF, 0xA1);
+
+	outb(0x00, 0x3F6);
 }
 
 void idt_init(void){

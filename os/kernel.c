@@ -11,7 +11,7 @@ void main(void* boot_info) {
 	vmm_init();
 	heap_init();
 
-	// shell_main();
+	shell_main();
 
 	__asm__("hlt");
 }

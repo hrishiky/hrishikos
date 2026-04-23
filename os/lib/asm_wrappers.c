@@ -8,6 +8,14 @@ void outb(unsigned char data, unsigned short port) {
 	);
 }
 
+void outw(unsigned short data, unsigned short port) {
+	__asm__ volatile (
+		"outw %0, %1"
+		:
+		: "a"(data), "d"(port)
+	);
+}
+
 
 unsigned char inb(unsigned short port) {
 	unsigned char data;
